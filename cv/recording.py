@@ -8,8 +8,8 @@ class Recording:
     def start_recording(self, fps = 30):
         cam = self.camera
         if cam.isOpened():
-            frame_width = int(camera.get(cv.CAP_PROP_FRAME_WIDTH))
-            frame_height = int(camera.get(cv.CAP_PROP_FRAME_HEIGHT))
+            frame_width = int(cam.get(cv.CAP_PROP_FRAME_WIDTH))
+            frame_height = int(cam.get(cv.CAP_PROP_FRAME_HEIGHT))
             if fps == 0:
                 fps = cam.get(cv.CAP_PROP_FPS)
                 if fps == 0:
@@ -17,8 +17,8 @@ class Recording:
             time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             out = cv.VideoWriter(f"{time}.mp4", cv.VideoWriter_fourcc(*'mp4v'), fps, (frame_width, frame_height))
 
-        while cap.isOpened():
-            ret, frame = cap.read()
+        while cam.isOpened():
+            ret, frame = cam.read()
             if ret:
                 out.write(frame)
                 cv.imshow('Frame', frame)
@@ -35,5 +35,5 @@ class Recording:
         return None
 
 if __name__ == "__main__":
-    camera = Recording
-    camera.start_recording()
+    camera = Recording()
+    camera.start_recording(30)
