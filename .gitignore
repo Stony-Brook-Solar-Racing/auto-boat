@@ -3,3 +3,4 @@ venv
 .RData
 .Rhistory
 *.pdf
+*.mpv
