@@ -1,22 +1,14 @@
-# pip install pyserial
 import time
 import serial
 import struct
-from gpiozero import Servo
-
-esc = Servo(
-        12,
-        min_pulse_width=988/1_000_000.0,
-        max_pulse_width=2000/1_000_000.0,
-        frame_width=20_000/1_000_000.0
-        )
-
-# servo2 = Servo(13, min_pulse_width=1/1000, max_pulse_width=2/1000, frame_width=20/1000)
 
 PORT = "/dev/ttyAMA0"
 BAUD = 420000
 
 TYPE_RC_CHANNELS_PACKED = 0x16
+
+def __init__(self):
+    pass    
 
 # CRC-8 (poly 0xD5), init 0x00, over TYPE+PAYLOAD
 def crsf_crc(data: bytes) -> int:
@@ -100,8 +92,6 @@ def main():
                             # print("norm:", [round(n,3) for n in norm[:8]])
                             print("column 3:", round(norm[2]+1,3))
                             print("column 1:", round(norm[0],3))
-                            esc.value = norm[2]+1
-                            # servo2.value = -1*norm[3]
                         # Advance to next frame
                         i = frame_end
                     else:
@@ -111,9 +101,7 @@ def main():
                 # drop consumed bytes
                 if i:
                     del buf[:i]
-        esc.detach()
     finally:
-        esc.close()
         print("Disconnected from esc")
 if __name__ == "__main__":
     print("Testing")
