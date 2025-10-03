@@ -7,6 +7,19 @@ BAUD = 420000
 
 TYPE_RC_CHANNELS_PACKED = 0x16
 
+# Decode Function
+def decode(ftype: int, payload: bytes) -> list:
+    """
+    Decode a single CRSF frame and return array of normalized channel values.
+    Returns empty list if not a valid RC channels frame.
+    """
+    if ftype == TYPE_RC_CHANNELS_PACKED and len(payload) == 22:
+        ticks = unpack_16x11_bits(payload)
+        us = [ticks_to_us(t) for t in ticks]
+        norm = [us_to_norm(u) for u in us]
+        return norm  # Return all 16 normalized channel values
+    return []
+
 def __init__(self):
     pass    
 
@@ -83,15 +96,15 @@ def main():
 
                     if crc == calc:
                         if ftype == TYPE_RC_CHANNELS_PACKED and len(payload) == 22:
-                            ticks = unpack_16x11_bits(payload)
-                            us = [ticks_to_us(t) for t in ticks]
-                            norm = [us_to_norm(u) for u in us]
-                            # Example use: print first 8 channels
-                            #print("CH1-8 us:", [round(u,1) for u in us[:8]],
-                            #      "norm:", [round(n,3) for n in norm[:8]])
-                            # print("norm:", [round(n,3) for n in norm[:8]])
-                            print("column 3:", round(norm[2]+1,3))
-                            print("column 1:", round(norm[0],3))
+                            # Use the decode function to get channel values
+                            channels = decode(ftype, payload)
+                            if channels:  # If decode found valid channels
+                                # Example use: print first 8 channels
+                                #print("CH1-8 us:", [round(u,1) for u in us[:8]],
+                                #      "norm:", [round(n,3) for n in norm[:8]])
+                                # print("norm:", [round(n,3) for n in norm[:8]])
+                                print("column 3:", round(channels[2]+1,3))
+                                print("column 1:", round(channels[0],3))
                         # Advance to next frame
                         i = frame_end
                     else:
@@ -106,3 +119,4 @@ def main():
 if __name__ == "__main__":
     print("Testing")
     main()
+    
