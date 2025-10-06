@@ -4,3 +4,4 @@ venv
 .Rhistory
 *.pdf
 *.mpv
+*pycache*
