@@ -4,6 +4,8 @@ import sys
 from time import sleep
 import logging
 
+from servo_control import ServoControl
+
 # Constants
 BAUDRATE = 9600
 TIMEOUT = 1
@@ -28,6 +30,7 @@ class Setup:
         for port in ports:
             try:
                 self.arduino = Serial(port=port, baudrate=BAUDRATE, timeout=TIMEOUT)
+                sleep(1)
             except(OSError, SerialException) as err:
                 logging.error(err)
         
@@ -39,8 +42,13 @@ class Setup:
 
     def __init__(self):
         self.__setup_arduino()
-        logging.info("Starting voltage reader")
-
+        print("Got here")
+        
 if __name__ == "__main__":
-    sleep(5)
+    sleep(2)
     setup = Setup()
+    controller = ServoControl(setup.arduino)
+    while(True):
+        controller.send_ch3()
+        
+        
