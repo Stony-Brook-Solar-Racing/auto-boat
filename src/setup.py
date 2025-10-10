@@ -48,7 +48,19 @@ if __name__ == "__main__":
     sleep(2)
     setup = Setup()
     controller = ServoControl(setup.arduino)
+    ready = input("type 0 for ready")
+    ready = int(ready)
+    if(ready == 0):
+        line = "PI-READY\n".encode("ascii")
+        try:
+            setup.arduino.reset_input_buffer()
+        except Exception:
+            pass
+        setup.arduino.write(line)
+        setup.arduino.flush()
+    else:
+        print("not ready")
     while(True):
-        controller.send_ch3()
+        controller.send_ch1()
         
         
