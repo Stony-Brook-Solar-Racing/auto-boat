@@ -50,18 +50,18 @@ def _setup_arduino():
 
 if __name__ == "__main__":
     arduino = _setup_arduino()
-    # rc_decoder = Decode()
+    rc_decoder = Decode("/dev/ttyAMA0", 420000)
 
     while True:
         (sa, ch1, ch3) = rc_decoder.decode_rc()
-        if sa == 1:
+        if sa == "1":
             channels = ch1+" "+ch3+"\n"
             print(channels)
             _send(arduino, channels)
-        elif sa == 0:
+        elif sa == "0":
             channels = "0 0\n"
             print(channels)
             _send(arduino, channels)
-        elif sa == -1:
+        elif sa == "-1":
             # Implement autonomy later
             pass

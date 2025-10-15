@@ -53,7 +53,8 @@ class Decode:
 
 
     def decode_rc(self):
-        serial.Serial(PORT, BAUD, timeout=0.1)
+        ser = self.serial
+        buf = bytearray()
         buf.extend(ser.read(512))
         # Parse frames in the buffer
         i = 0
@@ -76,7 +77,7 @@ class Decode:
                     norm = [us_to_norm(u) for u in us]
                     # print("column 3:", round(norm[2]+1,3))
                     # print("column 1:", round(norm[0],3))
-                    self.last = (round(norm[6]), round(norm[0]), round(norm[2]))
+                    self.last = (str(round(norm[6])), str(round(norm[0],3)), str(round(norm[2],3)))
                     return self.last
                 # Advance to next frame
                 i = frame_end
