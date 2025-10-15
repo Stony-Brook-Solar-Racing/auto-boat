@@ -103,6 +103,42 @@ def main():
                     del buf[:i]
     finally:
         print("Disconnected from esc")
+
 if __name__ == "__main__":
     print("Testing")
     main()
+
+# Remove setup class
+## Move setup_arduino function outside of the class
+## Move __init__ to the if __name__ == "main"... area
+# Change controller into a class with an init method and a start method
+## start method starts the while True: area
+# Write the state layout for the callback
+# Only handle the arduino.spam() case for manual and zero, do not handle autonomous yet.
+
+# 1 2 3 or an enum
+# lay out servo and engine as numbers ranging from what values?
+
+# # method 2
+# import decode_rc
+# import Arduino
+#
+# arduino = Arduino()
+#
+# while True:
+#     (sa, speed, turn) = decode_rc()
+#     state = 1 # switch sa...
+#     if state == nothing:
+#         arduno.set_values(0, 0)
+#     elif state == manual:
+#         arduino.set_values(speed, turn)
+#     else:
+#         # Somehow handle the autonomy
+#         # Figure this out later; this is just a draft.
+#         path = get_path()
+#         while True:
+#             (sa, _, _) = decode_rc()
+#             if sa == 1:
+#                 break
+#             follow_path(path)
+#             # do autonomous Stuff
