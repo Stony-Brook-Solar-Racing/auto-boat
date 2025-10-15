@@ -53,13 +53,14 @@ if __name__ == "__main__":
     # rc_decoder = Decode()
 
     while True:
-        # (sa, ch1, ch3) = rc_decoder.decode_rc()
-        sa = 0
+        (sa, ch1, ch3) = rc_decoder.decode_rc()
         if sa == 1:
             channels = ch1+" "+ch3+"\n"
+            print(channels)
             _send(arduino, channels)
         elif sa == 0:
-            channels = "1200 0\n"
+            channels = "0 0\n"
+            print(channels)
             _send(arduino, channels)
         elif sa == -1:
             # Implement autonomy later
