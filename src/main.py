@@ -34,7 +34,8 @@ def _setup_arduino():
             arduino = Serial(port=port, baudrate=BAUDRATE, timeout=TIMEOUT)
             sleep(1)
         except(OSError, SerialException) as err:
-            logging.error(err)
+            # logging.error(err)
+            print(err)
     
     # Keep retrying if arduino is not found
     while arduino == None:
