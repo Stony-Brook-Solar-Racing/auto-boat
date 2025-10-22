@@ -67,6 +67,7 @@ if __name__ == "__main__":
 
     while True:
         decoded = rc_decoder.decode_rc()
+
         if count_none >= 20:
             print("Disconnected from remote, halting engine")
             channels = DEFAULT_CHANNELS
@@ -84,14 +85,23 @@ if __name__ == "__main__":
             count_none = 0
             last_value = decoded
 
+        last_state, _, _ = last_value
         state, rotation, throttle = decoded
+        if state == "0" and last_state != state:
+            while True:
+                _, _, current_throttle = rc_decoder.decode_rc()
+                if current_throttle == -1:
+                    state, rotation, throttle = decoded
+                    break
+                print("Waiting for reset")
+                sleep(1)
 
         if state == "-1":  # Up-most
-            channels = rotation + " " + throttle + "\n"
+            channels = DEFAULT_CHANNELS
             print(channels)
             _send(arduino, channels)
         elif state == "0":  # Middle
-            channels = DEFAULT_CHANNELS
+            channels = f"{rotation} {throttle}\n"
             print(channels)
             _send(arduino, channels)
         elif state == "1":  # Down-most
