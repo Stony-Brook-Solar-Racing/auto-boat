@@ -9,6 +9,7 @@ from decode_rc import Decode
 # Constants
 BAUDRATE = 9600
 TIMEOUT = 1
+DEFAULT_CHANNELS = "0 -1\n"
 
 
 def _send(arduino, text):
@@ -65,14 +66,17 @@ if __name__ == "__main__":
     count_none = 0
 
     while True:
-        # state, rotation, throttle
         decoded = rc_decoder.decode_rc()
         if count_none >= 20:
-            print("Disconnected from remote")
+            print("Disconnected from remote, halting engine")
+            channels = DEFAULT_CHANNELS
+            _send(arduino, channels)
+
             while rc_decoder.decode_rc() is None:
                 print("Waiting to reconnect to remote")
                 sleep(1)
             count_none = 0
+            continue
         elif decoded is None:
             count_none += 1
             continue
@@ -87,7 +91,7 @@ if __name__ == "__main__":
             print(channels)
             _send(arduino, channels)
         elif state == "0":  # Middle
-            channels = "0 -1\n"
+            channels = DEFAULT_CHANNELS
             print(channels)
             _send(arduino, channels)
         elif state == "1":  # Down-most
