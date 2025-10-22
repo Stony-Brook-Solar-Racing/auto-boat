@@ -60,7 +60,7 @@ class Decode:
         i = 0
         while i + 5 <= len(buf):
             addr = buf[i]
-            length = buf[i+1]  # length includes TYPE + PAYLOAD + CRC
+            length = buf[i+1] # length includes TYPE + PAYLOAD + CRC
             frame_end = i + 2 + length
             if frame_end > len(buf):
                 break  # need more data
