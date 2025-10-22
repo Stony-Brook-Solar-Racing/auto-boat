@@ -49,7 +49,6 @@ class Decode:
 
     def __init__(self, PORT, BAUD):
         self.serial = serial.Serial(PORT, BAUD, timeout=0.1)
-        self.last = (0, 0, 0)
 
 
     def decode_rc(self):
@@ -77,8 +76,8 @@ class Decode:
                     norm = [us_to_norm(u) for u in us]
                     # print("column 3:", round(norm[2]+1,3))
                     # print("column 1:", round(norm[0],3))
-                    self.last = (str(round(norm[6])), str(round(norm[0],3)), str(round(norm[2],3)))
-                    return self.last
+                    values = (str(round(norm[6])), str(round(norm[0],3)), str(round(norm[2],3)))
+                    return values
                 # Advance to next frame
                 i = frame_end
             else:
@@ -89,4 +88,4 @@ class Decode:
         if i:
             del buf[:i]
 
-        return self.last
+        return None

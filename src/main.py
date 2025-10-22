@@ -32,7 +32,7 @@ def _setup_arduino():
         raise Exception("Platform not supported")
 
     # Find arduino
-    while arduino == None:
+    while arduino is None:
         for port in ports:
             try:
                 arduino = Serial(port=port, baudrate=BAUDRATE, timeout=TIMEOUT)
@@ -42,7 +42,7 @@ def _setup_arduino():
                 print(err)
 
         # Send ready signal to arduino if good
-        if arduino != None:
+        if arduino is not None:
             ready = "PI-READY\n"
             _send(arduino, ready)
             return arduino
@@ -54,19 +54,42 @@ def _setup_arduino():
 
 
 if __name__ == "__main__":
-    arduino = _setup_arduino()
     rc_decoder = Decode("/dev/ttyAMA0", 420000)
+    while rc_decoder.decode_rc() is None:
+        print("Waiting to connect to remote")
+        sleep(1)
+    arduino = _setup_arduino()
+    print("Arduino set up")
+
+    last_value = (-1, 0, -1)
+    count_none = 0
 
     while True:
-        (sa, ch1, ch3) = rc_decoder.decode_rc()
-        if sa == "1":
-            channels = ch1 + " " + ch3 + "\n"
+        # state, rotation, throttle
+        decoded = rc_decoder.decode_rc()
+        if count_none >= 20:
+            print("Disconnected from remote")
+            while rc_decoder.decode_rc() is None:
+                print("Waiting to reconnect to remote")
+                sleep(1)
+            count_none = 0
+        elif decoded is None:
+            count_none += 1
+            continue
+        else:
+            count_none = 0
+            last_value = decoded
+
+        state, rotation, throttle = decoded
+
+        if state == "-1":  # Up-most
+            channels = rotation + " " + throttle + "\n"
             print(channels)
             _send(arduino, channels)
-        elif sa == "0":
-            channels = "0 0\n"
+        elif state == "0":  # Middle
+            channels = "0 -1\n"
             print(channels)
             _send(arduino, channels)
-        elif sa == "-1":
+        elif state == "1":  # Down-most
             # Implement autonomy later
             pass
