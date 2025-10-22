@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
         # Wait for throttle to be reset for manual controls
         last_state, _, _ = last_value
-        state, _, throttle = decoded
+        state, rotation, throttle = decoded
         if throttle != "-1.0" and state == "0" and last_state != state:
             _send(arduino, DEFAULT_CHANNELS)
             while True:
