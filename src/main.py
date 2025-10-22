@@ -10,6 +10,7 @@ from decode_rc import Decode
 BAUDRATE = 9600
 TIMEOUT = 1
 DEFAULT_CHANNELS = "0 -1\n"
+NONE_TIMEOUT = 20
 
 
 def _send(arduino, text):
@@ -68,7 +69,8 @@ if __name__ == "__main__":
     while True:
         decoded = rc_decoder.decode_rc()
 
-        if count_none >= 20:
+        # On timeout, attempt to reconnect
+        if count_none >= NONE_TIMEOUT:
             print("Disconnected from remote, halting engine")
             channels = DEFAULT_CHANNELS
             _send(arduino, channels)
@@ -84,17 +86,18 @@ if __name__ == "__main__":
         else:
             count_none = 0
 
+        # Wait for throttle to be reset for manual controls
         last_state, _, _ = last_value
-        state, rotation, throttle = decoded
-        if state == "0" and last_state != state:
+        state, _, throttle = decoded
+        if throttle != "-1.0" and state == "0" and last_state != state:
             _send(arduino, DEFAULT_CHANNELS)
             while True:
                 rc_decoder.flush()
                 decoded = rc_decoder.decode_rc()
                 if decoded is None:
                     continue
-                current_state, _, current_throttle = decoded
 
+                current_state, _, current_throttle = decoded
                 print(f"{current_state} _ {current_throttle}")
                 if current_state != "0" or current_throttle == "-1.0":
                     state, rotation, throttle = decoded
@@ -104,14 +107,11 @@ if __name__ == "__main__":
 
         last_value = decoded
 
-        if state == "-1":  # Up-most
-            channels = DEFAULT_CHANNELS
-            print(channels)
-            _send(arduino, channels)
+        if state == "-1":  # Top
+            _send(arduino, DEFAULT_CHANNELS)
         elif state == "0":  # Middle
             channels = f"{rotation} {throttle}\n"
-            print(channels)
+            print(channels, end="")
             _send(arduino, channels)
-        elif state == "1":  # Down-most
-            # Implement autonomy later
-            pass
+        elif state == "1":  # Down
+            _send(arduino, DEFAULT_CHANNELS)
