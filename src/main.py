@@ -83,18 +83,26 @@ if __name__ == "__main__":
             continue
         else:
             count_none = 0
-            last_value = decoded
 
         last_state, _, _ = last_value
         state, rotation, throttle = decoded
         if state == "0" and last_state != state:
+            _send(arduino, DEFAULT_CHANNELS)
             while True:
-                _, _, current_throttle = rc_decoder.decode_rc()
-                if current_throttle == -1:
+                rc_decoder.flush()
+                decoded = rc_decoder.decode_rc()
+                if decoded is None:
+                    continue
+                current_state, _, current_throttle = decoded
+
+                print(f"{current_state} _ {current_throttle}")
+                if current_state != "0" or current_throttle == "-1.0":
                     state, rotation, throttle = decoded
                     break
                 print("Waiting for reset")
                 sleep(1)
+
+        last_value = decoded
 
         if state == "-1":  # Up-most
             channels = DEFAULT_CHANNELS

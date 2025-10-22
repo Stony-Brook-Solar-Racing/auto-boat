@@ -50,11 +50,12 @@ class Decode:
     def __init__(self, PORT, BAUD):
         self.serial = serial.Serial(PORT, BAUD, timeout=0.1)
 
+    def flush(self):
+        self.serial.reset_input_buffer()
 
     def decode_rc(self):
-        ser = self.serial
         buf = bytearray()
-        buf.extend(ser.read(512))
+        buf.extend(self.serial.read(512))
         # Parse frames in the buffer
         i = 0
         while i + 5 <= len(buf):
