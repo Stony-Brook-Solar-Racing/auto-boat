@@ -6,7 +6,7 @@ Servo esc;
 
 void setup() {
   Serial.begin(9600);
-  Serial.write("ACK");
+  Serial.write("ARDUINO-READY\n");
   // Wait for serial to be available
   while(!Serial.available()) { delay(2000); }
   // Block until read signal is sent
@@ -24,13 +24,14 @@ void setup() {
     else { Serial.println("Received Incorrect Signal"); }
   }
   // Attach the esc to pin 9
-  esc.attach(9,1000,2000);
+  esc.attach(9, 1000, 2000);
   // Attach the servo to pin 3
   servo.attach(3);
 
-  // ESC arming
+  /*
   esc.writeMicroseconds(2000);
   delay(3000);
+  */
   esc.writeMicroseconds(1000);
   delay(3000);
 
@@ -50,15 +51,15 @@ void loop() {
       else if(ch1 > 1) ch1 = 1;
       if(ch3 < -1) ch3 = -1; 
       else if(ch3 > 1) ch3 = 1;
-      // Convert -1 to 1 to 0 to 180
-      int rudder = (int)lroundf(((ch1 + 1.0f) * 0.5f) * 180.0f);
-      if(rudder < 0) rudder = 0;
-      else if(rudder > 180) rudder = 180;
+      // Convert -1 to 1 to 45 to 135
+      int rudder = (int)lroundf((((ch1 + 1.0f) * 0.5f) * 90.0f) + 45);
+      if(rudder < 60) rudder = 60;
+      else if(rudder > 120) rudder = 120;
       // Convert -1 to 1 to 1000 to 2000
       int throttle = (int)lroundf(((ch3 + 1.0f) * 0.5f) * 1000.0f + 1000.0f);
       if(throttle < 1000) throttle = 1000;
-      else if(throttle > 2000) rudder = 2000;
-      Serial.write(throttle);
+      else if(throttle > 2000) throttle = 2000;
+      Serial.println(throttle);
       servo.write(rudder);
       esc.writeMicroseconds(throttle);
   }
