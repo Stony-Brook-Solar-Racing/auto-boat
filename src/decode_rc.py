@@ -46,11 +46,18 @@ def safe_throttle(x: float) -> float:
         return x
 
 class Decode:
-
     def __init__(self, PORT, BAUD):
+        self.PORT = PORT
+        self.BAUD = BAUD
         self.serial = serial.Serial(PORT, BAUD, timeout=0.1)
+        self.serial.reset_input_buffer()
 
     def flush(self):
+        self.serial.reset_input_buffer()
+
+    def reset(self):
+        self.serial.close()
+        self.serial = serial.Serial(self.PORT, self.BAUD, timeout=0.1)
         self.serial.reset_input_buffer()
 
     def decode_rc(self):
@@ -59,7 +66,6 @@ class Decode:
         # Parse frames in the buffer
         i = 0
         while i + 5 <= len(buf):
-            addr = buf[i]
             length = buf[i+1] # length includes TYPE + PAYLOAD + CRC
             frame_end = i + 2 + length
             if frame_end > len(buf):
