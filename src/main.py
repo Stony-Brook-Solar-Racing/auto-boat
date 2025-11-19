@@ -1,4 +1,5 @@
 import sys
+import logging
 from glob import glob
 from time import sleep
 
@@ -11,6 +12,10 @@ BAUDRATE = 9600
 TIMEOUT = 1
 DEFAULT_CHANNELS = "0 -1\n"
 NONE_TIMEOUT = 20
+
+logging.basicConfig(
+    filename="pi_log", filemode="w+", level=logging.INFO
+)
 
 
 def _send(arduino, text):
@@ -40,8 +45,7 @@ def _setup_arduino():
                 arduino = Serial(port=port, baudrate=BAUDRATE, timeout=TIMEOUT)
                 sleep(1)
             except (OSError, SerialException) as err:
-                # logging.error(err)
-                print(err)
+                logging.error(err)
 
         # Send ready signal to arduino if good
         if arduino is not None:
@@ -50,8 +54,8 @@ def _setup_arduino():
             return arduino
 
         # Keep retrying if arduino is not found
-        print("Arduino not found\n")
-        print("Retrying in 5 seconds...")
+        logging.warning("Arduino not found\n"
+                        "Retrying in 5 seconds...")
         sleep(5)
 
 
@@ -59,14 +63,14 @@ if __name__ == "__main__":
     rc_decoder = Decode("/dev/ttyAMA0", 420000)
     count_none = 0
     while rc_decoder.decode_rc() is None:
-        print("Waiting to connect to remote")
+        logging.warning("Waiting to connect to remote")
         sleep(1)
         if count_none >= NONE_TIMEOUT:
-            print("Restting receiver")
+            logging.warning("Restting receiver")
             rc_decoder.reset()
 
     arduino = _setup_arduino()
-    print("Arduino set up")
+    logging.info("Arduino set up")
 
     last_value = (-1, 0, -1)
     count_none = 0
@@ -75,14 +79,15 @@ if __name__ == "__main__":
 
         # On timeout, attempt to reconnect
         if count_none >= NONE_TIMEOUT:
-            print("Disconnected from remote, halting motor")
+            logging.warning("Disconnected from remote, halting motor")
             channels = DEFAULT_CHANNELS
             _send(arduino, channels)
 
             while rc_decoder.decode_rc() is None:
-                print("Waiting to reconnect to remote")
+                logging.warning("Waiting to reconnect to remote")
                 sleep(1)
                 rc_decoder.reset()
+            logging.info("Reconnected to remote")
             count_none = 0
             last_value = (-1, 0, -1)
             continue
@@ -96,7 +101,7 @@ if __name__ == "__main__":
         last_state, _, _ = last_value
         state, rotation, throttle = decoded
         if last_state != state and state == "0" and throttle != "-1.0":
-            print("Set throttle to 0 before continuing")
+            logging.warning("Set throttle to 0 before continuing")
             _send(arduino, DEFAULT_CHANNELS)
             while True:
                 rc_decoder.flush()
@@ -105,11 +110,11 @@ if __name__ == "__main__":
                     continue
 
                 current_state, _, current_throttle = decoded
-                print(f"{current_state} _ {current_throttle}")
+                logging.debug(f"{current_state} _ {current_throttle}")
                 if current_state != "0" or current_throttle == "-1.0":
                     state, rotation, throttle = decoded
                     break
-                print("Waiting for reset")
+                logging.debug("Waiting for reset")
                 sleep(1)
 
         last_value = decoded
@@ -118,7 +123,7 @@ if __name__ == "__main__":
             _send(arduino, DEFAULT_CHANNELS)
         elif state == "0": # Middle
             channels = f"{rotation} {throttle}\n"
-            print(channels, end="")
+            logging.debug(channels, end="")
             _send(arduino, channels)
         elif state == "1": # Down
             _send(arduino, DEFAULT_CHANNELS)
