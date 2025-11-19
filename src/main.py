@@ -1,6 +1,5 @@
 import sys
 import logging
-import time
 from glob import glob
 from time import sleep
 
@@ -9,16 +8,14 @@ from serial import Serial, SerialException
 from decode_rc import Decode
 
 # Constants
-START_TIME = time.time()
-CURR_TIME = time.time() - START_TIME
 BAUDRATE = 9600
 TIMEOUT = 1
 DEFAULT_CHANNELS = "0 -1\n"
 NONE_TIMEOUT = 20
 
 logging.basicConfig(
-    format='%(relativeCreated)dms:%(levelname)s - %(message)',
-    filename="pi_log", filemode="w+", level=logging.INFO
+    format='%(relativeCreated)ds:%(levelname)s - %(message)s',
+    filename="pi.log", filemode="w+", level=logging.NOTSET
 )
 
 
