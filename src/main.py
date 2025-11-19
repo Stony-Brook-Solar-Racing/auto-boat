@@ -15,7 +15,7 @@ NONE_TIMEOUT = 20
 
 logging.basicConfig(
     format='%(relativeCreated)ds:%(levelname)s - %(message)s',
-    filename="pi.log", filemode="w+", level=logging.NOTSET
+    filename="/var/log/esc.log", filemode="w+", level=logging.NOTSET
 )
 
 
