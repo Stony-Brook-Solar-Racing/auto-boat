@@ -84,6 +84,7 @@ if __name__ == "__main__":
                 sleep(1)
                 rc_decoder.reset()
             count_none = 0
+            last_value = (-1, 0, -1)
             continue
         elif decoded is None:
             count_none += 1
