@@ -1,7 +1,6 @@
 import math
 
 class Auto:
-
     def __init__ (self, gps, PORT_COMPASS):
         self.gps = gps
         self.PORT_COMPASS = PORT_COMPASS
@@ -23,20 +22,3 @@ class Auto:
 
     def speed (dist, time): #Use dist func above, time is set
         return dist/time
-
-class Point:
-    def __init__ (self, latitude, longtitude):
-        self.longtitude = longtitude
-        self.latitude = latitude
-
-print("lon -180 to 180 and lat -90 to 90\n ")
-point1 = Point(11.0, 22.0)
-point2 = Point(33.0, 44.0)
-print(Auto.distance(point1, point2))
-        
-    
-    
-
-
-
-
