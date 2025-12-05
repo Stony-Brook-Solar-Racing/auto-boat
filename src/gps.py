@@ -27,6 +27,6 @@ class Gps:
         return None
 
 class Point:
-    def __init__ (self, latitude, longtitude):
-        self.longtitude = longtitude
+    def __init__ (self, latitude, longitude):
+        self.longtitude = longitude
         self.latitude = latitude

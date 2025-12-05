@@ -6,11 +6,11 @@ class Auto:
         self.PORT_COMPASS = PORT_COMPASS
         
     def distance (point1, point2): # Should be in degress
-        D_lon = (point2.longtitude - point1.longtitude) * math.pi / 180.0
         D_lat = (point2.latitude - point1.latitude) * math.pi / 180.0
+        D_lon = (point2.longtitude - point1.longitude) * math.pi / 180.0
         
         lat1 = (point1.latitude) * math.pi / 180.0
-        lat2 = (point2.latitude) * math.pi / 180.0
+        lat2 = (point2.longitude) * math.pi / 180.0
 
         a = (pow(math.sin(D_lat / 2), 2) + 
              pow(math.sin(D_lon / 2), 2) * 
