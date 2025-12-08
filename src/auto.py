@@ -1,13 +1,14 @@
 import math
+from gps import Gps, Point
 
 class Auto:
-    def __init__ (self, gps, PORT_COMPASS):
+    def __init__(self, gps, compass):
         self.gps = gps
-        self.PORT_COMPASS = PORT_COMPASS
+        self.compass = compass
         
-    def distance (point1, point2): # Should be in degress
+    def distance(self, point1: Point, point2: Point) -> float: # Should be in degress
         D_lat = (point2.latitude - point1.latitude) * math.pi / 180.0
-        D_lon = (point2.longtitude - point1.longitude) * math.pi / 180.0
+        D_lon = (point2.longitude - point1.longitude) * math.pi / 180.0
         
         lat1 = (point1.latitude) * math.pi / 180.0
         lat2 = (point2.longitude) * math.pi / 180.0
@@ -20,5 +21,5 @@ class Auto:
         c = 2 * math.asin(math.sqrt(a))
         return rad * c
 
-    def speed (dist, time): #Use dist func above, time is set
+    def speed(self, dist, time): #Use dist func above, time is set
         return dist/time
