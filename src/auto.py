@@ -23,16 +23,18 @@ def speed(point1, point2, time):
     return dist/time
 
 class Auto:
-    def __init__(self, gps: Gps, compass: Compass):
+    def __init__(self, gps: Gps, compass: Compass, max_rudder = 0.3, min_rudder = -0.3):
         self.gps = gps
         self.compass = compass
-        
+        self.max_rudder = max_rudder
+        self.min_rudder = min_rudder
     
     # Returns angle to waypoint
-    def a_to_w(self, point1: Point, point2: Point) -> float:
-        dLon = (point2.longitude - point1.longitude) * math.pi / 180.0
-        lat1 = (point1.latitude) * math.pi / 180.0
-        lat2 = (point2.latitude) * math.pi / 180.0
+    def a_to_w(self, waypoint: Point) -> float:
+        curr_pos = self.gps.get_location()
+        dLon = (waypoint.longitude - curr_pos.longitude) * math.pi / 180.0
+        lat1 = (curr_pos.latitude) * math.pi / 180.0
+        lat2 = (waypoint.latitude) * math.pi / 180.0
 
         y = math.sin(dLon) * math.cos(lat2)
         x = (math.cos(lat1) * math.sin(lat2) - 
@@ -62,4 +64,5 @@ class Auto:
             throttle = last_throttle-0.01
 
         # Get rudder value
+        angle_to_w = self.a_to_w(waypoint)
         return (throttle, rudder)
