@@ -26,11 +26,11 @@ class Auto:
     def __init__(self, gps: Gps, compass: Compass, max_rudder = 0.3, min_rudder = -0.3):
         self.gps = gps
         self.compass = compass
-        self.max_rudder = max_rudder
-        self.min_rudder = min_rudder
+        self.rudder_pid = PID(1, 0.0, 0.0, setpoint=1)
+        self.rudder_pid.output_limits = (min_rudder, max_rudder)
     
     # Returns angle to waypoint
-    def a_to_w(self, waypoint: Point) -> float:
+    def angle_to_waypoint(self, waypoint: Point) -> float:
         curr_pos = self.gps.get_location()
         dLon = (waypoint.longitude - curr_pos.longitude) * math.pi / 180.0
         lat1 = (curr_pos.latitude) * math.pi / 180.0
@@ -42,12 +42,14 @@ class Auto:
         brng = math.atan2(y, x)
         brng = math.degrees(brng)
         brng = (brng + 360) % 360
-        return brng - self.compass.get_heading()
-    
+        # Maps it to [-180, 180)
+        angle = (brng - self.compass.get_heading() + 180) % 360 - 180
+        return angle
+
     # Returns the values for throttle and rudder
-    def get_values(self, waypoint: Point, last_values: tuple[float, float]) -> tuple[float, float]:
+    def get_values(self, waypoint: Point, last_throttle: float) -> tuple[float, float]:
         # Get throttle value
-        last_throttle, last_rudder = last_values
+        last_throttle = last_throttle
         dist = distance(waypoint, self.gps.get_location())
         throttle, rudder = (-1.0, 0.0)
         if dist > 30:
@@ -64,5 +66,13 @@ class Auto:
             throttle = last_throttle-0.01
 
         # Get rudder value
-        angle_to_w = self.a_to_w(waypoint)
+        angle_to_w = self.angle_to_waypoint(waypoint)
+        rudder = self.rudder_pid(angle_to_w)
+        
         return (throttle, rudder)
+
+    # Needed to keep PID alive
+    def start(self):
+        self.rudder_pid.auto_mode = True
+    def pause(self):
+        self.rudder_pid.auto_mode = False
