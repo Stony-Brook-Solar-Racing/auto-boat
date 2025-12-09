@@ -24,7 +24,7 @@ class Gps:
             decimal = -decimal
         return decimal
 
-    def get_location(self):
+    def get_location(self) -> Point:
         count = 20
         while count > 0:
             line = self.gps.readline().decode("ascii", errors="ignore")
@@ -34,7 +34,7 @@ class Gps:
                 dec_deg_lon = self._convert_dec_deg(msg.lon, msg.lon_dir)
                 return Point(dec_deg_lat, dec_deg_lon)
             count -= 1
-        return None
+        return Point(-1, -1)
 
 class Compass:
     def __init__(self, bus_num=1, addr=0x1E, declination_deg=0.0):
