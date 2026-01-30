@@ -119,7 +119,6 @@ if __name__ == "__main__":
                 sleep(1)
 
         last_value = decoded
-
         if state == "-1": # Top
             _send(arduino, DEFAULT_CHANNELS)
         elif state == "0": # Middle

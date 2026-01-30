@@ -28,6 +28,7 @@ class Auto:
         self.compass = compass
         self.rudder_pid = PID(1, 0.0, 0.0, setpoint=1)
         self.rudder_pid.output_limits = (min_rudder, max_rudder)
+        self.rudder_pid.auto_mode = False
     
     # Returns angle to waypoint
     def angle_to_waypoint(self, waypoint: Point) -> float:
