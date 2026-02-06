@@ -6,6 +6,7 @@ from time import sleep
 from serial import Serial, SerialException
 
 from decode_rc import Decode
+from auto import Auto
 
 # Constants
 BAUDRATE = 9600
@@ -59,6 +60,7 @@ def _setup_arduino():
                         "Retrying in 5 seconds...")
         sleep(5)
 
+# def _setup_autonomy() -> Auto:
 
 if __name__ == "__main__":
     rc_decoder = Decode("/dev/ttyAMA0", 420000)
@@ -67,7 +69,7 @@ if __name__ == "__main__":
         logging.warning("Waiting to connect to remote")
         sleep(1)
         if count_none >= NONE_TIMEOUT:
-            logging.warning("Restting receiver")
+            logging.warning("Resetting receiver")
             rc_decoder.reset()
 
     arduino = _setup_arduino()
@@ -119,11 +121,11 @@ if __name__ == "__main__":
                 sleep(1)
 
         last_value = decoded
-        if state == "-1": # Top
+        if state == "-1": # Top | Off
             _send(arduino, DEFAULT_CHANNELS)
-        elif state == "0": # Middle
+        elif state == "0": # Middle | Manual Control
             channels = f"{rotation} {throttle}\n"
             logging.debug(f"{channels}")
             _send(arduino, channels)
-        elif state == "1": # Down
+        elif state == "1": # Down | Autonomous Control
             _send(arduino, DEFAULT_CHANNELS)
