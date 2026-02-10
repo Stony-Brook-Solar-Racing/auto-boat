@@ -4,7 +4,6 @@ import smbus
 import time
 import math
 
-
 class Point:
     def __init__(self, latitude, longitude):
         self.longitude = longitude
@@ -28,11 +27,14 @@ class Gps:
         count = 20
         while count > 0:
             line = self.gps.readline().decode("ascii", errors="ignore")
-            if line.startswith("$GPRMC"):
+            if line.startswith("$GPRMC") or line.startswith("$GNRMC"):
                 msg = pynmea2.parse(line)
-                dec_deg_lat = self._convert_dec_deg(msg.lat, msg.lat_dir)
-                dec_deg_lon = self._convert_dec_deg(msg.lon, msg.lon_dir)
-                return Point(dec_deg_lat, dec_deg_lon)
+                if msg.status == 'A':
+                    dec_deg_lat = self._convert_dec_deg(msg.lat, msg.lat_dir)
+                    dec_deg_lon = self._convert_dec_deg(msg.lon, msg.lon_dir)
+                    return Point(dec_deg_lat, dec_deg_lon)
+                else:
+                    return Point(-2, -2)
             count -= 1
         return Point(-1, -1)
 
@@ -71,3 +73,6 @@ class Compass:
             heading -= 2 * math.pi
 
         return math.degrees(heading)
+
+if __name__ == "__main__":
+    pass
