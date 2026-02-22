@@ -1,0 +1,58 @@
+version = 1
+revision = 3
+requires-python = ">=3.13"
+
+[[package]]
+name = "auto-boat"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "pynmea2" },
+    { name = "pyserial" },
+    { name = "simple-pid" },
+    { name = "smbus2" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pynmea2", specifier = ">=1.19.0" },
+    { name = "pyserial", specifier = ">=3.5" },
+    { name = "simple-pid", specifier = ">=2.0.1" },
+    { name = "smbus2", specifier = ">=0.6.0" },
+]
+
+[[package]]
+name = "pynmea2"
+version = "1.19.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/d7/5d0e36d00cd8aa19a6e717bcd1216ca805d86865501dfebdd18667c9edbd/pynmea2-1.19.0.tar.gz", hash = "sha256:1daa79b93279f887d1c235e5cc5c79e32644564138ce46989ab0f4a2fc970d7c", size = 36240, upload-time = "2023-01-19T20:52:56.289Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/75/24/1f575eb17a8135e54b3c243ff87e2f4d6b2389942836021d0628ed837559/pynmea2-1.19.0-py3-none-any.whl", hash = "sha256:5138558b4fb5daa587b2c17de99eb43df0297039de1c98010c996624abfb00eb", size = 30016, upload-time = "2023-01-19T20:52:54.38Z" },
+]
+
+[[package]]
+name = "pyserial"
+version = "3.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082/pyserial-3.5.tar.gz", hash = "sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb", size = 159125, upload-time = "2020-11-23T03:59:15.045Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/bc/587a445451b253b285629263eb51c2d8e9bcea4fc97826266d186f96f558/pyserial-3.5-py2.py3-none-any.whl", hash = "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0", size = 90585, upload-time = "2020-11-23T03:59:13.41Z" },
+]
+
+[[package]]
+name = "simple-pid"
+version = "2.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/0a/c670a4f4dea4b21c0b074b193c54698e5e047479e688c8d5495d264c9921/simple_pid-2.0.1.tar.gz", hash = "sha256:5771761c54541c900e597d6c2e4ea93fd2cc98f4e48cb9eca265fba2e65be99e", size = 15577, upload-time = "2024-07-21T13:27:32.037Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ee/0e/4d4fe01b21558a31a12e029a57cf677666c89c1b00cb82c1b53d0025cd63/simple_pid-2.0.1-py3-none-any.whl", hash = "sha256:1d53ed76b03d949ceea46b538fb22999d27899e2e655aa19b99c40f6edcedca6", size = 7194, upload-time = "2024-07-21T13:27:30.688Z" },
+]
+
+[[package]]
+name = "smbus2"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/36/afafd43770caae69f04e21402552a8f94a072def46a002fab9357f4852ce/smbus2-0.6.0.tar.gz", hash = "sha256:9b5ff1e998e114730f9dfe0c4babbef06c92468cfb61eaa684e30f225661b95b", size = 17403, upload-time = "2025-12-20T09:02:52.017Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/cf/2e1d6805da6f9c9b3a4358076ff2e072d828ba7fed124edc1b729e210c55/smbus2-0.6.0-py2.py3-none-any.whl", hash = "sha256:03d83d2a9a4afc5ddca0698ccabf101cb3de52bc5aefd7b76778ffb27ff654e0", size = 11849, upload-time = "2025-12-20T09:02:51.219Z" },
+]

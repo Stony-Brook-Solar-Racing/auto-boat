@@ -1,0 +1,12 @@
+[project]
+name = "auto-boat"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pynmea2>=1.19.0",
+    "pyserial>=3.5",
+    "simple-pid>=2.0.1",
+    "smbus2>=0.6.0",
+]

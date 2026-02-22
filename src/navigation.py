@@ -1,6 +1,6 @@
 import serial
 import pynmea2
-import smbus
+import smbus2 as smbus
 import time
 import math
 
@@ -80,9 +80,11 @@ class Compass:
 
 if __name__ == "__main__":
     gps = Gps("/dev/ttyAMA3", 9600)
+    compass = Compass()
     while True:
         longitude = gps.get_location().longitude
-        if longitude == -2:
-            print("No Satellites")
-        else:
-            print(longitude)
+        heading = compass.get_heading()
+        sat_count = gps.get_satelite_count()
+        print(heading)
+        print(longitude)
+        print(sat_count)
