@@ -7,6 +7,7 @@ from serial import Serial, SerialException
 
 from decode_rc import Decode
 from auto import Auto
+from navigation import Gps, Compass, Point
 
 # Constants
 BAUDRATE = 9600
@@ -29,7 +30,6 @@ def _send(arduino, text):
     arduino.write(line)
     arduino.flush()
 
-
 def _setup_arduino():
     arduino = None
     # Check platform type
@@ -46,8 +46,10 @@ def _setup_arduino():
             try:
                 arduino = Serial(port=port, baudrate=BAUDRATE, timeout=TIMEOUT)
                 sleep(1)
+                break
             except (OSError, SerialException) as err:
                 logging.error(err)
+                arduino = None
 
         # Send ready signal to arduino if good
         if arduino is not None:
@@ -60,7 +62,11 @@ def _setup_arduino():
                         "Retrying in 5 seconds...")
         sleep(5)
 
-# def _setup_autonomy() -> Auto:
+def _setup_autonomy() -> Auto:
+    gps = Gps("/dev/ttyAMA3", 9600)
+    compass = Compass()
+    auto = Auto(gps, compass)
+    return auto
 
 if __name__ == "__main__":
     rc_decoder = Decode("/dev/ttyAMA0", 420000)
@@ -68,6 +74,7 @@ if __name__ == "__main__":
     while rc_decoder.decode_rc() is None:
         logging.warning("Waiting to connect to remote")
         sleep(1)
+        count_none += 1
         if count_none >= NONE_TIMEOUT:
             logging.warning("Resetting receiver")
             rc_decoder.reset()
@@ -75,7 +82,10 @@ if __name__ == "__main__":
     arduino = _setup_arduino()
     logging.info("Arduino set up")
 
-    last_value = (-1, 0, -1)
+    auto = _setup_autonomy()
+    logging.info("Autonomous functions set up")
+
+    last_value = ("-1", "0", "-1")
     count_none = 0
     while True:
         decoded = rc_decoder.decode_rc()
@@ -92,7 +102,7 @@ if __name__ == "__main__":
                 rc_decoder.reset()
             logging.info("Reconnected to remote")
             count_none = 0
-            last_value = (-1, 0, -1)
+            last_value = ("-1", "0", "-1")
             continue
         elif decoded is None:
             count_none += 1
@@ -101,7 +111,7 @@ if __name__ == "__main__":
             count_none = 0
 
         # Wait for throttle to be reset for manual controls
-        last_state, _, _ = last_value
+        last_state, last_throttle, _ = last_value
         state, rotation, throttle = decoded
         if last_state != state and state == "0" and throttle != "-1.0":
             logging.warning("Set throttle to 0 before continuing")
@@ -125,7 +135,10 @@ if __name__ == "__main__":
             _send(arduino, DEFAULT_CHANNELS)
         elif state == "0": # Middle | Manual Control
             channels = f"{rotation} {throttle}\n"
+            last_throttle = throttle
             logging.debug(f"{channels}")
             _send(arduino, channels)
         elif state == "1": # Down | Autonomous Control
+            channels = auto.get_values(Point(-1, -1), float(last_throttle))
+            last_throttle, _ = channels
             _send(arduino, DEFAULT_CHANNELS)

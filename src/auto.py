@@ -17,7 +17,6 @@ def distance(point1: Point, point2: Point) -> float: # Returns in km
     c = 2 * math.asin(math.sqrt(a))
     return rad * c
 
-
 def speed(point1, point2, time):
     dist = distance(point1, point2)
     return dist/time
