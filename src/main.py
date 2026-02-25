@@ -8,6 +8,7 @@ from serial import Serial, SerialException
 from decode_rc import Decode
 from auto import Auto
 from navigation import Gps, Compass, Point
+from lora import Lora
 
 # Constants
 BAUDRATE = 9600
@@ -109,6 +110,9 @@ if __name__ == "__main__":
             continue
         else:
             count_none = 0
+
+        # if lora.get_waypoint():
+        #    pass  
 
         # Wait for throttle to be reset for manual controls
         last_state, last_throttle, _ = last_value

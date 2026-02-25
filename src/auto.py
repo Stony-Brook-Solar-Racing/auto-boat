@@ -22,12 +22,13 @@ def speed(point1, point2, time):
     return dist/time
 
 class Auto:
-    def __init__(self, gps: Gps, compass: Compass, max_rudder = 0.3, min_rudder = -0.3):
+    def __init__(self, gps: Gps, compass: Compass, waypoints: list[Point] = [], distance_min = 0.1, max_rudder = 0.3, min_rudder = -0.3):
         self.gps = gps
         self.compass = compass
         self.rudder_pid = PID(1, 0.0, 0.0, setpoint=1)
         self.rudder_pid.output_limits = (min_rudder, max_rudder)
         self.rudder_pid.auto_mode = False
+        self.waypoints = waypoints
     
     # Returns angle to waypoint
     def angle_to_waypoint(self, waypoint: Point) -> float:
@@ -47,29 +48,32 @@ class Auto:
         return angle
 
     # Returns the values for throttle and rudder
-    def get_values(self, waypoint: Point, last_throttle: float) -> tuple[float, float]:
-        # Get throttle value
-        last_throttle = last_throttle
-        dist = distance(waypoint, self.gps.get_location())
-        throttle, rudder = (-1.0, 0.0)
-        if dist > 30:
-            desired_throttle = 1
-        else:
-            desired_throttle = dist/30
+    def get_values(self, last_throttle: float) -> tuple[float, float]:
+        if self.waypoints:
+            waypoint = self.waypoints[0]
+            # Get throttle value
+            last_throttle = last_throttle
+            dist = distance(waypoint, self.gps.get_location())
+            throttle, rudder = (-1.0, 0.0)
+            if dist > 30:
+                desired_throttle = 1
+            else:
+                desired_throttle = dist/30
 
-        # Gradual increase/decrease
-        if last_throttle < desired_throttle:
-            throttle = last_throttle+0.01
-        elif last_throttle == desired_throttle:
-            throttle = last_throttle
-        else:
-            throttle = last_throttle-0.01
+            # Gradual increase/decrease
+            if last_throttle < desired_throttle:
+                throttle = last_throttle+0.01
+            elif last_throttle == desired_throttle:
+                throttle = last_throttle
+            else:
+                throttle = last_throttle-0.01
 
-        # Get rudder value
-        angle_to_w = self.angle_to_waypoint(waypoint)
-        rudder = self.rudder_pid(angle_to_w)
-        
-        return (throttle, rudder)
+            # Get rudder value
+            angle_to_w = self.angle_to_waypoint(waypoint)
+            rudder = self.rudder_pid(angle_to_w)
+            
+            return (throttle, rudder)
+        return (-1, 0)
 
     # Needed to keep PID alive
     def start(self):
