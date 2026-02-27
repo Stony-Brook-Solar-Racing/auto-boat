@@ -12,7 +12,7 @@ def distance(point1: Point, point2: Point) -> float: # Returns in km
     a = (pow(math.sin(D_lat / 2), 2) + 
          pow(math.sin(D_lon / 2), 2) * 
              math.cos(lat1) * math.cos(lat2));
-    print(point1.latitude, point2.latitude, lat1, lat2, a)
+    # print(point1.latitude, point2.latitude, lat1, lat2, a)
     rad = 6371
     c = 2 * math.asin(math.sqrt(a))
     return rad * c
@@ -53,6 +53,7 @@ class Auto:
             waypoint = self.waypoints[0]
             # Get throttle value
             last_throttle = last_throttle
+            print(f"curr_location: {self.gps.get_location().latitude}")
             dist = distance(waypoint, self.gps.get_location())
             throttle, rudder = (-1.0, 0.0)
             if dist > 30:
@@ -70,10 +71,17 @@ class Auto:
 
             # Get rudder value
             angle_to_w = self.angle_to_waypoint(waypoint)
+            print(f"angle to wayp: {angle_to_w}")
             rudder = self.rudder_pid(angle_to_w)
-            
-            return (throttle, rudder)
+
+            return (rudder, throttle)
         return (-1, 0)
+
+    def get_curr_waypoint(self):
+        if self.waypoints:
+            return self.waypoints[0]
+        else:
+            return None
 
     # Needed to keep PID alive
     def start(self):

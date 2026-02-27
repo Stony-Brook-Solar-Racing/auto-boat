@@ -3,6 +3,7 @@ import pynmea2
 import smbus2 as smbus
 import time
 import math
+import threading
 
 class Point:
     def __init__(self, latitude, longitude):
@@ -12,6 +13,10 @@ class Point:
 class Gps:
     def __init__(self, PORT="/dev/ttyAMA3", BAUD=9600):
         self.gps = serial.Serial(PORT, BAUD, timeout=1)
+        self.last_location = Point(-1, -1)
+        self._lock = threading.Lock()
+        self.thread = threading.Thread(target=self.update_location, daemon=True)
+        self.thread.start()
 
     @staticmethod
     def _convert_dec_deg(value, direction) -> float:
@@ -29,7 +34,7 @@ class Gps:
             msg = pynmea2.parse(line)
             return(msg.num_sats)
 
-    def get_location(self) -> Point:
+    def update_location(self) -> Point:
         count = 20
         while count > 0:
             line = self.gps.readline().decode("ascii", errors="ignore")
@@ -38,11 +43,25 @@ class Gps:
                 if msg.status == 'A':
                     dec_deg_lat = self._convert_dec_deg(msg.lat, msg.lat_dir)
                     dec_deg_lon = self._convert_dec_deg(msg.lon, msg.lon_dir)
-                    return Point(dec_deg_lat, dec_deg_lon)
+                    with self._lock:
+                        self.last_location = Point(dec_deg_lat, dec_deg_lon)
+                    return
                 else:
-                    return Point(-2, -2)
+                    with self._lock:
+                        self.location = Point(-2, -2)
+                    return
             count -= 1
-        return Point(-1, -1)
+
+        with self._lock:
+            self.last_location = Point(-1, -1)
+        return
+
+    def get_location(self):
+        with self._lock:
+            return self.last_location
+
+    def flush(self):
+        self.gps.reset_input_buffer()
 
 class Compass:
     def __init__(self, bus_num=1, addr=0x1E, declination_deg=0.0):
@@ -85,6 +104,6 @@ if __name__ == "__main__":
         longitude = gps.get_location().longitude
         heading = compass.get_heading()
         sat_count = gps.get_satelite_count()
-        print(heading)
-        print(longitude)
-        print(sat_count)
+        print(f"heading: {heading}")
+        print(f"longitude: {longitude}")
+        print(f"satelite count: {sat_count}")

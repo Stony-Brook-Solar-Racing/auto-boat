@@ -59,14 +59,14 @@ def _setup_arduino():
             return arduino
 
         # Keep retrying if arduino is not found
-        logging.warning("Arduino not found\n"
-                        "Retrying in 5 seconds...")
+        logging.warning("Arduino not found\n")
+        print("Arduino not found\nRetrying in 5 seconds...")
         sleep(5)
 
-def _setup_autonomy() -> Auto:
+def _setup_autonomy(waypoints) -> Auto:
     gps = Gps("/dev/ttyAMA3", 9600)
     compass = Compass()
-    auto = Auto(gps, compass)
+    auto = Auto(gps, compass, waypoints)
     return auto
 
 if __name__ == "__main__":
@@ -74,17 +74,21 @@ if __name__ == "__main__":
     count_none = 0
     while rc_decoder.decode_rc() is None:
         logging.warning("Waiting to connect to remote")
+        print("Waiting to connect to remote")
         sleep(1)
         count_none += 1
         if count_none >= NONE_TIMEOUT:
             logging.warning("Resetting receiver")
+            print("Resetting receiver")
             rc_decoder.reset()
 
     arduino = _setup_arduino()
     logging.info("Arduino set up")
+    print("Arduino set up")
 
-    auto = _setup_autonomy()
+    auto = _setup_autonomy([Point(40.89769,-73.12574)])
     logging.info("Autonomous functions set up")
+    print("Autonomous functions set up")
 
     last_value = ("-1", "0", "-1")
     count_none = 0
@@ -94,14 +98,17 @@ if __name__ == "__main__":
         # On timeout, attempt to reconnect
         if count_none >= NONE_TIMEOUT:
             logging.warning("Disconnected from remote, halting motor")
+            print("Disconnected from remote, halting motor")
             channels = DEFAULT_CHANNELS
             _send(arduino, channels)
 
             while rc_decoder.decode_rc() is None:
                 logging.warning("Waiting to reconnect to remote")
+                print("Waiting to reconnect to remote")
                 sleep(1)
                 rc_decoder.reset()
             logging.info("Reconnected to remote")
+            print("Reconnected to remote")
             count_none = 0
             last_value = ("-1", "0", "-1")
             continue
@@ -119,6 +126,7 @@ if __name__ == "__main__":
         state, rotation, throttle = decoded
         if last_state != state and state == "0" and throttle != "-1.0":
             logging.warning("Set throttle to 0 before continuing")
+            print("Set throttle to 0 before continuing")
             _send(arduino, DEFAULT_CHANNELS)
             while True:
                 rc_decoder.flush()
@@ -128,21 +136,33 @@ if __name__ == "__main__":
 
                 current_state, _, current_throttle = decoded
                 logging.debug(f"{current_state} _ {current_throttle}")
+                print(f"{current_state} _ {current_throttle}")
                 if current_state != "0" or current_throttle == "-1.0":
                     state, rotation, throttle = decoded
                     break
                 logging.debug("Waiting for reset")
+                print("Waiting for reset")
                 sleep(1)
 
         last_value = decoded
+        print(f"state: {state}")
         if state == "-1": # Top | Off
+            if last_state == "1":
+                auto.pause()
             _send(arduino, DEFAULT_CHANNELS)
         elif state == "0": # Middle | Manual Control
+            if last_state == "1":
+                auto.pause()
             channels = f"{rotation} {throttle}\n"
             last_throttle = throttle
             logging.debug(f"{channels}")
             _send(arduino, channels)
         elif state == "1": # Down | Autonomous Control
-            channels = auto.get_values(Point(-1, -1), float(last_throttle))
-            last_throttle, _ = channels
+            if last_state != "1":
+                auto.start()
+            rudder, throttle = auto.get_values(float(last_throttle))
+            last_throttle = throttle
+            channels = f"{rotation} {throttle}\n"
+            print(f"target: {auto.get_curr_waypoint().latitude}")
+            print(f"auto: {channels}")
             _send(arduino, DEFAULT_CHANNELS)
