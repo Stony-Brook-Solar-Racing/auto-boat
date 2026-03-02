@@ -15,6 +15,7 @@ class Gps:
         self.gps = serial.Serial(PORT, BAUD, timeout=1)
         self.last_location = Point(-1, -1)
         self.last_num_sats = None
+        self.last_num_visible_sats = None
         self._lock = threading.Lock()
         self.thread = threading.Thread(target=self.update_loop, daemon=True)
         self.thread
@@ -51,6 +52,11 @@ class Gps:
                     msg = pynmea2.parse(line)
                     with self._lock:
                         self.last_num_sats = int(msg.num_sats) if msg.num_sats else None
+                elif line.startswith("$GPGSV") or line.startswith("$GNGSV"):
+                    msg = pynmea2.parse(line)
+                    if msg.msg_num == '1':
+                        with self._lock:
+                            self.last_num_visible_sats = int(msg.num_sv_in_view) if msg.num_sv_in_view else None
 
             except pynmea2.ParseError:
                 pass
@@ -140,6 +146,8 @@ if __name__ == "__main__":
         latitude = curr_location.latitude
         heading = compass.get_heading()
         sat_count = gps.get_satelite_count()
+        visible_sat_count = gps.last_num_visible_sats
         print(f"heading: {heading}")
         print(f"longitude: {longitude} | latitude: {latitude}")
         print(f"satelite count: {sat_count}")
+        print(f"visible satelite count: {visible_sat_count}")
