@@ -2,6 +2,7 @@ import serial
 import queue
 import time
 import threading
+import logging
 from navigation import Point
 
 # some rylr998 commands
@@ -65,14 +66,14 @@ from navigation import Point
 # todo:
 # send logging data
 # sent data from prints as logging stuff also?
-# function to stop the parse message thread
-# setting address/network/password if needed
 
 class Lora:
     # default baud is 115200 idk how seriel works but if 9600 is NECCESSARY, you'll need to change serial to 115200 then send AT+IPR=9600
-    def __init__(self, PORT="/dev/ttyAMA4", BAUD=115200):
+    def __init__(self, ADDRESS, NETWORK=1, PORT="/dev/ttyAMA4", BAUD=115200):
         self.lora = serial.Serial(PORT, BAUD, timeout=1)
         self.lock = threading.Lock()
+        self.address = ADDRESS
+        self.network = NETWORK
 
         self.running = True
         self.waypoints = queue.SimpleQueue()
@@ -85,7 +86,7 @@ class Lora:
         self.thread.start()
 
     def _init_module(self):
-        commands = ["AT", "AT+BAND=915000000", "AT+CRFOP=22"]
+        commands = ["AT", "AT+BAND=915000000", "AT+CRFOP=22", f"AT+ADDRESS={self.address}", f"AT+NETWORKID={self.network}"]
         for cmd in commands:
             if not self.send_command(cmd):
                 raise Exception(f"Failed to initialize: {cmd}")
