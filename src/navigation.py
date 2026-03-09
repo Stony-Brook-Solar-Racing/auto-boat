@@ -7,8 +7,8 @@ import threading
 
 class Point:
     def __init__(self, latitude, longitude):
-        self.longitude = longitude
         self.latitude = latitude
+        self.longitude = longitude
 
 class Gps:
     def __init__(self, PORT="/dev/ttyAMA3", BAUD=9600):
@@ -18,7 +18,6 @@ class Gps:
         self.last_num_visible_sats = None
         self._lock = threading.Lock()
         self.thread = threading.Thread(target=self.update_loop, daemon=True)
-        self.thread
         self.thread.start()
 
     @staticmethod
@@ -47,7 +46,6 @@ class Gps:
                     else:
                         with self._lock:
                             self.last_location = Point(-2, -2)
-                            
                 elif line.startswith("$GPGGA") or line.startswith("$GNGGA"):
                     msg = pynmea2.parse(line)
                     with self._lock:
@@ -63,37 +61,42 @@ class Gps:
             except Exception:
                 time.sleep(0.1)
 
-    def update_satelite_count(self):
-        line = self.gps.readline().decode("ascii", errors="ignore")
-        if line.startswith("$GPGGA") or line.startswith("$GNGGA"):
-            msg = pynmea2.parse(line)
-            with self._lock:
-                self.last_num_sats = msg.num_sats
-
-        with self._lock:
-            self.last_num_sats = None
+    # def update_satelite_count(self):
+    #     line = self.gps.readline().decode("ascii", errors="ignore")
+    #     if line.startswith("$GPGGA") or line.startswith("$GNGGA"):
+    #         msg = pynmea2.parse(line)
+    #         with self._lock:
+    #             self.last_num_sats = msg.num_sats
+    #
+    #     with self._lock:
+    #         self.last_num_sats = None
+    #
+    #
+    # def update_location(self):
+    #     while True:
+    #         try:
+    #             line = self.gps.readline().decode("ascii", errors="ignore")
+    #             if line.startswith("$GPRMC") or line.startswith("$GNRMC"):
+    #                 msg = pynmea2.parse(line)
+    #                 if msg.status == 'A':
+    #                     dec_deg_lat = self._convert_dec_deg(msg.lat, msg.lat_dir)
+    #                     dec_deg_lon = self._convert_dec_deg(msg.lon, msg.lon_dir)
+    #                     with self._lock:
+    #                         self.last_location = Point(dec_deg_lat, dec_deg_lon)
+    #                     continue
+    #                 else:
+    #                     with self._lock:
+    #                         self.last_location = Point(-2, -2)
+    #         except pynmea2.ParseError:
+    #             pass
 
     def get_satelite_count(self):
         with self._lock:
             return self.last_num_sats
 
-    def update_location(self):
-        while True:
-            try:
-                line = self.gps.readline().decode("ascii", errors="ignore")
-                if line.startswith("$GPRMC") or line.startswith("$GNRMC"):
-                    msg = pynmea2.parse(line)
-                    if msg.status == 'A':
-                        dec_deg_lat = self._convert_dec_deg(msg.lat, msg.lat_dir)
-                        dec_deg_lon = self._convert_dec_deg(msg.lon, msg.lon_dir)
-                        with self._lock:
-                            self.last_location = Point(dec_deg_lat, dec_deg_lon)
-                        continue
-                    else:
-                        with self._lock:
-                            self.last_location = Point(-2, -2)
-            except pynmea2.ParseError:
-                pass
+    def get_visible_satelite_count(self):
+        with self._lock:
+            return self.last_num_visible_sats
 
     def get_location(self):
         with self._lock:
@@ -131,6 +134,7 @@ class Compass:
         x, y, _ = self._read_axis()
         # In radians btw
         heading = math.atan2(y,x)
+        heading += self.declination_rad
         if heading < 0:
             heading += 2 * math.pi
         if heading > 2 * math.pi:
@@ -146,7 +150,7 @@ if __name__ == "__main__":
         latitude = curr_location.latitude
         heading = compass.get_heading()
         sat_count = gps.get_satelite_count()
-        visible_sat_count = gps.last_num_visible_sats
+        visible_sat_count = gps.get_visible_satelite_count()
         print(f"heading: {heading}")
         print(f"longitude: {longitude} | latitude: {latitude}")
         print(f"satelite count: {sat_count}")
