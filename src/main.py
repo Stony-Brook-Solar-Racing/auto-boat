@@ -90,7 +90,8 @@ if __name__ == "__main__":
     logging.info("Autonomous functions set up")
     print("Autonomous functions set up")
 
-    last_value = ("-1", "0", "-1")
+    last_value = (-1.0, 0.0, -1.0)
+    last_auto_throttle = -1.0
     count_none = 0
     while True:
         decoded = rc_decoder.decode_rc()
@@ -110,7 +111,8 @@ if __name__ == "__main__":
             logging.info("Reconnected to remote")
             print("Reconnected to remote")
             count_none = 0
-            last_value = ("-1", "0", "-1")
+            last_value = (-1.0, 0.0, -1.0)
+            last_auto_throttle = -1.0
             continue
         elif decoded is None:
             count_none += 1
@@ -122,9 +124,9 @@ if __name__ == "__main__":
         #    pass  
 
         # Wait for throttle to be reset for manual controls
-        last_state, last_throttle, _ = last_value
-        state, rotation, throttle = decoded
-        if last_state != state and state == "0" and throttle != "-1.0":
+        last_state, _, _ = last_value
+        state, rotation, throttle = (float(decoded[0]), float(decoded[1]), float(decoded[2]))
+        if last_state != state and state == 0.0 and throttle != -1.0:
             logging.warning("Set throttle to 0 before continuing")
             print("Set throttle to 0 before continuing")
             _send(arduino, DEFAULT_CHANNELS)
@@ -134,35 +136,36 @@ if __name__ == "__main__":
                 if decoded is None:
                     continue
 
-                current_state, _, current_throttle = decoded
+                current_state, _, current_throttle = (float(decoded[0]), float(decoded[1]), float(decoded[2]))
                 logging.debug(f"{current_state} _ {current_throttle}")
                 print(f"{current_state} _ {current_throttle}")
-                if current_state != "0" or current_throttle == "-1.0":
-                    state, rotation, throttle = decoded
+                if current_state != 0.0 or current_throttle == -1.0:
+                    state, rotation, throttle = (float(decoded[0]), float(decoded[1]), float(decoded[2]))
                     break
                 logging.debug("Waiting for reset")
                 print("Waiting for reset")
                 sleep(1)
 
-        last_value = decoded
+        last_value = (state, rotation, throttle)
         print(f"state: {state}")
-        if state == "-1": # Top | Off
-            if last_state == "1":
+        if state == -1.0: # Top | Off
+            if last_state == 1.0:
                 auto.pause()
             _send(arduino, DEFAULT_CHANNELS)
-        elif state == "0": # Middle | Manual Control
-            if last_state == "1":
+        elif state == 0.0: # Middle | Manual Control
+            if last_state == 1.0:
                 auto.pause()
             channels = f"{rotation} {throttle}\n"
-            last_throttle = throttle
+            last_auto_throttle = throttle
             logging.debug(f"{channels}")
             _send(arduino, channels)
-        elif state == "1": # Down | Autonomous Control
-            if last_state != "1":
+        elif state == 1.0: # Down | Autonomous Control
+            if last_state != 1.0:
                 auto.start()
-            rudder, throttle = auto.get_values(float(last_throttle))
-            last_throttle = throttle
+                last_auto_throttle = -1.0
+            rotation, throttle = auto.get_values(last_auto_throttle)
+            last_auto_throttle = throttle
             channels = f"{rotation} {throttle}\n"
             print(f"target: {auto.get_curr_waypoint().latitude}")
             print(f"auto: {channels}")
-            _send(arduino, DEFAULT_CHANNELS)
+            _send(arduino, channels)
