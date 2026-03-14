@@ -153,3 +153,17 @@ class Lora:
 
     def get_message(self):
         return self.messages.get()
+    
+class LoraLogging(logging.Handler):
+    def __init__(self, lora_instance, target_addr):
+        super().__init__()
+        self.lora = lora_instance
+        self.target_addr = target_addr
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            msg_type = record.levelname.lower()
+            self.lora.send_msg(self.target_addr, msg_type, msg)
+        except Exception:
+            self.handleError(record)
