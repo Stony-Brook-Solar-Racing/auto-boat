@@ -61,35 +61,6 @@ class Gps:
             except Exception:
                 time.sleep(0.1)
 
-    # def update_satelite_count(self):
-    #     line = self.gps.readline().decode("ascii", errors="ignore")
-    #     if line.startswith("$GPGGA") or line.startswith("$GNGGA"):
-    #         msg = pynmea2.parse(line)
-    #         with self._lock:
-    #             self.last_num_sats = msg.num_sats
-    #
-    #     with self._lock:
-    #         self.last_num_sats = None
-    #
-    #
-    # def update_location(self):
-    #     while True:
-    #         try:
-    #             line = self.gps.readline().decode("ascii", errors="ignore")
-    #             if line.startswith("$GPRMC") or line.startswith("$GNRMC"):
-    #                 msg = pynmea2.parse(line)
-    #                 if msg.status == 'A':
-    #                     dec_deg_lat = self._convert_dec_deg(msg.lat, msg.lat_dir)
-    #                     dec_deg_lon = self._convert_dec_deg(msg.lon, msg.lon_dir)
-    #                     with self._lock:
-    #                         self.last_location = Point(dec_deg_lat, dec_deg_lon)
-    #                     continue
-    #                 else:
-    #                     with self._lock:
-    #                         self.last_location = Point(-2, -2)
-    #         except pynmea2.ParseError:
-    #             pass
-
     def get_satelite_count(self):
         with self._lock:
             return self.last_num_sats

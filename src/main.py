@@ -120,9 +120,6 @@ if __name__ == "__main__":
         else:
             count_none = 0
 
-        # if lora.get_waypoint():
-        #    pass  
-
         # Wait for throttle to be reset for manual controls
         last_state, _, _ = last_value
         state, rotation, throttle = (float(decoded[0]), float(decoded[1]), float(decoded[2]))
@@ -158,6 +155,7 @@ if __name__ == "__main__":
             channels = f"{rotation} {throttle}\n"
             last_auto_throttle = throttle
             logging.debug(f"{channels}")
+            print(f"Channels: {channels}")
             _send(arduino, channels)
         elif state == 1.0: # Down | Autonomous Control
             if last_state != 1.0:
@@ -166,6 +164,9 @@ if __name__ == "__main__":
             rotation, throttle = auto.get_values(last_auto_throttle)
             last_auto_throttle = throttle
             channels = f"{rotation} {throttle}\n"
-            print(f"target: {auto.get_curr_waypoint().latitude}")
-            print(f"auto: {channels}")
+            print(f"target waypoint: {auto.get_curr_waypoint().latitude} | {auto.get_curr_waypoint().longitude}")
+            print(f"curr location: {auto.gps.get_location().latitude} | {auto.gps.get_location().longitude}")
+            print(f"curr heading: {auto.compass.get_heading()}")
+            print(f"angle to wayp: {auto.angle_to_waypoint(auto.get_curr_waypoint())}")
+            print(f"channels: {channels}")
             _send(arduino, channels)
