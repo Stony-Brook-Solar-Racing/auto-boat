@@ -68,7 +68,7 @@ from navigation import Point
 # sent data from prints as logging stuff also?
 
 class Lora:
-    # default baud is 115200 idk how seriel works but if 9600 is NECCESSARY, you'll need to change serial to 115200 then send AT+IPR=9600
+    # default baud is 115200 idk how serial works but if 9600 is NECCESSARY, you'll need to change serial to 115200 then send AT+IPR=9600
     def __init__(self, ADDRESS, NETWORK=1, PORT="/dev/ttyAMA4", BAUD=115200):
         self.lora = serial.Serial(PORT, BAUD, timeout=1)
         self.lock = threading.Lock()
@@ -78,6 +78,7 @@ class Lora:
         self.running = True
         self.waypoints = queue.SimpleQueue()
         self.messages = queue.SimpleQueue()
+        self.mavlink_messages = queue.SimpleQueue() 
 
         time.sleep(0.5) 
         self._init_module()
@@ -126,13 +127,15 @@ class Lora:
         if len(parts) != 5: return
 
         # <DATATYPE>~data
-        # example: waypoint:-100.2302/100.230498
+        # example: waypoint~-100.2302/100.230498
         data_str = parts[2]
         if '~' in data_str:
             data_type, content = data_str.split('~', 1)
             if data_type.lower() == "waypoint":
                 if '/' in content:
                     self.waypoints.put(content.split('/'))
+            elif data_type.lower() == "mav":
+                self.mavlink_messages.put(content)    
             else:
                 self.messages.put({data_type: content})
         else:

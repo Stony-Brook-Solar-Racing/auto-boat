@@ -9,6 +9,7 @@ from decode_rc import Decode
 from auto import Auto
 from navigation import Gps, Compass, Point
 from lora import Lora
+from mavlink import MavlinkHandler
 
 # Constants
 BAUDRATE = 9600
@@ -90,10 +91,28 @@ if __name__ == "__main__":
     logging.info("Autonomous functions set up")
     print("Autonomous functions set up")
 
+    lora_module = Lora(ADDRESS=0, NETWORK=1, PORT="/dev/ttyAMA4", BAUD=115200)
+    mav_bridge = MavlinkHandler(lora_module, target_address=1) 
+
     last_value = (-1.0, 0.0, -1.0)
     last_auto_throttle = -1.0
     count_none = 0
     while True:
+        curr_loc = auto.gps.get_location()
+        curr_heading = auto.compass.get_heading()
+        if curr_loc and curr_heading is not None:
+            mav_bridge.send_telemetry(curr_loc.latitude, curr_loc.longitude, curr_heading)
+
+        if not lora_module.waypoints.empty():
+            # Your get_waypoints() method already returns a Point(lat, lon) object
+            new_wp = lora_module.get_waypoints() 
+            
+            # Append it to your autonomy's waypoint list
+            # Note: If your Auto class uses a specific method to add waypoints (like auto.add_waypoint(new_wp)), use that here instead
+            auto.waypoints.append(new_wp) 
+            
+            print(f"*** MISSION PLANNER WAYPOINT ADDED: {new_wp.latitude}, {new_wp.longitude} ***")
+
         decoded = rc_decoder.decode_rc()
 
         # On timeout, attempt to reconnect

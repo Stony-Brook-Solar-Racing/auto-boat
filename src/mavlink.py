@@ -1,0 +1,79 @@
+from pymavlink.dialects.v20 import common as mavlink
+import time
+import threading
+
+class MavBuffer:
+    def __init__(self):
+        self.b = bytearray()
+    def write(self, data):
+        self.b.extend(data)
+    def read_hex(self):
+        res = bytes(self.b).hex()
+        self.b.clear()
+        return res
+
+class MavlinkHandler:
+    def __init__(self, lora_instance, target_address=1):
+        self.lora = lora_instance
+        self.target_address = target_address
+        self.mav_buf = MavBuffer()
+        # Initialize pymavlink to write binary to our buffer
+        self.mav = mavlink.MAVLink(self.mav_buf)
+        
+        # Start a background thread to process incoming waypoints
+        self.running = True
+        self.thread = threading.Thread(target=self._process_incoming, daemon=True)
+        self.thread.start()
+
+    def send_telemetry(self, lat, lon, heading):
+        # 1. Generate MAVLink messages in binary
+        self.mav.heartbeat_send(
+            mavlink.MAV_TYPE_SURFACE_BOAT, 
+            mavlink.MAV_AUTOPILOT_GENERIC, 
+            0, 0, 0
+        )
+        self.mav.global_position_int_send(
+            int(time.time() * 1000), 
+            int(lat * 1e7), 
+            int(lon * 1e7), 
+            0, 0, 0, 0, 0, 
+            int(heading * 100)
+        )
+        
+        # 2. Extract binary from buffer as hex string
+        hex_data = self.mav_buf.read_hex()
+        
+        # 3. Send over LoRa (using your newly added send_mavlink function)
+        if len(hex_data) > 0:
+            self.lora.send_mavlink(self.target_address, hex_data)
+
+    def _process_incoming(self):
+        while self.running:
+            # Check if we got MAVLink hex strings from the laptop
+            if not self.lora.mavlink_messages.empty():
+                hex_msg = self.lora.mavlink_messages.get()
+                try:
+                    raw_bytes = bytes.fromhex(hex_msg)
+                    # Feed bytes into pymavlink parser
+                    for b in raw_bytes:
+                        parsed_msg = self.mav.parse_char(bytes([b]))
+                        if parsed_msg:
+                            self._handle_msg(parsed_msg)
+                except Exception as e:
+                    print(f"MAVLink Parse Error: {e}")
+            time.sleep(0.1)
+
+    def _handle_msg(self, msg):
+        # Mission Planner sends MISSION_ITEM_INT for waypoints
+        if msg.get_type() == 'MISSION_ITEM_INT':
+            lat = msg.x / 1e7
+            lon = msg.y / 1e7
+            # Optional: msg.seq gives you the waypoint sequence number
+            print(f"WAYPOINT RECEIVED via MAVLink: Lat {lat}, Lon {lon}")
+            
+            # Put it in your existing waypoint queue as a Point
+            # Assuming you imported Point from navigation
+            self.lora.waypoints.put([str(lat), str(lon)]) 
+
+    def stop(self):
+        self.running = False
