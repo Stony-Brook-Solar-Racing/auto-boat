@@ -186,6 +186,7 @@ if __name__ == "__main__":
             print(f"target waypoint: {auto.get_curr_waypoint().latitude} | {auto.get_curr_waypoint().longitude}")
             print(f"curr location: {auto.gps.get_location().latitude} | {auto.gps.get_location().longitude}")
             print(f"curr heading: {auto.compass.get_heading()}")
+            print(f"Error Angle: {auto.angle_to_waypoint(auto.get_curr_waypoint()):.2f} | PID Output: {float(rotation):.2f}")
             print(f"angle to wayp: {auto.angle_to_waypoint(auto.get_curr_waypoint())}")
             print(f"channels: {channels}")
             _send(arduino, channels)
