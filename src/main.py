@@ -7,7 +7,7 @@ from serial import Serial, SerialException
 
 from decode_rc import Decode
 from auto import Auto
-from navigation import Gps, Compass, Point
+from navigation import Gps, Compass, Point, TiltCompensatedCompass
 from lora import Lora
 from mavlink import MavlinkHandler
 
@@ -66,7 +66,7 @@ def _setup_arduino():
 
 def _setup_autonomy(waypoints) -> Auto:
     gps = Gps("/dev/ttyAMA3", 9600)
-    compass = Compass()
+    compass = TiltCompensatedCompass()
     auto = Auto(gps, compass, waypoints)
     return auto
 

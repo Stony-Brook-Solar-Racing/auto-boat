@@ -1,5 +1,5 @@
 import math
-from navigation import Point, Gps, Compass
+from navigation import Point, Gps, Compass, TiltCompensatedCompass
 from simple_pid import PID
 
 def distance(point1: Point, point2: Point) -> float: # Returns in km
@@ -21,7 +21,7 @@ def speed(point1, point2, time):
     return dist/time
 
 class Auto:
-    def __init__(self, gps: Gps, compass: Compass, waypoints: list[Point] = [], distance_min = 0.1, max_rudder = 0.3, min_rudder = -0.3):
+    def __init__(self, gps: Gps, compass: TiltCompensatedCompass, waypoints: list[Point] = [], distance_min = 0.1, max_rudder = 0.3, min_rudder = -0.3):
         self.gps = gps
         self.compass = compass
         self.rudder_pid = PID(2.0, 0.0, 0.0, setpoint=0.0)
