@@ -103,6 +103,66 @@ class Gps:
         with self._lock:
             self.gps.reset_input_buffer()
 
+class MPU6050:
+    def __init__(self, bus_num=1, addr=0x68):
+        self.bus = smbus.SMBus(bus_num)
+        self.addr = addr
+        # Wake up the MPU-6050 (Write 0 to power management register 1)
+        self.bus.write_byte_data(self.addr, 0x6B, 0x00)
+        time.sleep(0.1)
+
+    @staticmethod
+    def _twos_complement(val, bits) -> float:
+        if val & (1 << (bits - 1)):
+            val -= (1 << bits)
+        return val
+
+    def read_accel(self) -> tuple[float, float, float]:
+        data = self.bus.read_i2c_block_data(self.addr, 0x3B, 6)
+        ax = self._twos_complement(data[0] << 8 | data[1], 16)
+        ay = self._twos_complement(data[2] << 8 | data[3], 16)
+        az = self._twos_complement(data[4] << 8 | data[5], 16)
+        return ax / 16384.0, ay / 16384.0, az / 16384.0
+
+class TiltCompensatedCompass:
+    def __init__(self, bus_num=1, compass_addr=0x1E, declination_deg=0.0):
+        self.compass_bus = smbus.SMBus(bus_num)
+        self.compass_addr = compass_addr
+        self.declination_rad = math.radians(declination_deg)
+        self.accel = MPU6050(bus_num=bus_num)
+        self.compass_bus.write_byte_data(self.compass_addr, 0x00, 0x70)
+        self.compass_bus.write_byte_data(self.compass_addr, 0x01, 0x20)
+        self.compass_bus.write_byte_data(self.compass_addr, 0x02, 0x00)
+        time.sleep(0.1)
+
+    @staticmethod
+    def _twos_complement(val, bits) -> float:
+        if val & (1 << (bits - 1)):
+            val -= (1 << bits)
+        return val
+
+    def _read_mag_axis(self) -> tuple[float, float, float]:
+        data = self.compass_bus.read_i2c_block_data(self.compass_addr, 0x03, 6)
+        x = self._twos_complement(data[0] << 8 | data[1], 16)
+        z = self._twos_complement(data[2] << 8 | data[3], 16)
+        y = self._twos_complement(data[4] << 8 | data[5], 16)
+        return x, y, z
+
+    def get_heading(self) -> float:
+        mx, my, mz = self._read_mag_axis()
+        ax, ay, az = self.accel.read_accel()
+        roll = math.atan2(ay, az)
+        pitch = math.atan2(-ax, math.sqrt(ay * ay + az * az))
+        x_comp = mx * math.cos(pitch) + mz * math.sin(pitch)
+        y_comp = mx * math.sin(roll) * math.sin(pitch) + my * math.cos(roll) - mz * math.sin(roll) * math.cos(pitch)
+        heading = math.atan2(y_comp, x_comp)
+        heading += self.declination_rad
+        if heading < 0:
+            heading += 2 * math.pi
+        if heading > 2 * math.pi:
+            heading -= 2 * math.pi
+        return math.degrees(heading)
+
 class Compass:
     def __init__(self, bus_num=1, addr=0x1E, declination_deg=0.0):
         self.compass = smbus.SMBus(bus_num)
