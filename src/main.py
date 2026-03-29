@@ -66,7 +66,12 @@ def _setup_arduino():
 
 def _setup_autonomy(waypoints) -> Auto:
     gps = Gps("/dev/ttyAMA3", 9600)
-    compass = TiltCompensatedCompass()
+    compass = TiltCompensatedCompass(
+        x_offset=-253.25,        
+        y_offset=-101.25,         
+        x_scale=1.0,          
+        y_scale=1.0
+    )
     auto = Auto(gps, compass, waypoints)
     return auto
 

@@ -125,11 +125,24 @@ class MPU6050:
         return ax / 16384.0, ay / 16384.0, az / 16384.0
 
 class TiltCompensatedCompass:
-    def __init__(self, bus_num=1, compass_addr=0x1E, declination_deg=0.0):
+    def __init__(self,
+                 bus_num=1,
+                 compass_addr=0x1E,
+                 declination_deg=0.0,
+                 x_offset=0.0,
+                 y_offset=0.0,
+                 x_scale=1.0,
+                 y_scale=1.0
+                 ):
         self.compass_bus = smbus.SMBus(bus_num)
         self.compass_addr = compass_addr
         self.declination_rad = math.radians(declination_deg)
+        self.x_offset = x_offset
+        self.y_offset = y_offset
+        self.x_scale = x_scale
+        self.y_scale = y_scale
         self.accel = MPU6050(bus_num=bus_num)
+
         self.compass_bus.write_byte_data(self.compass_addr, 0x00, 0x70)
         self.compass_bus.write_byte_data(self.compass_addr, 0x01, 0x20)
         self.compass_bus.write_byte_data(self.compass_addr, 0x02, 0x00)
@@ -149,18 +162,28 @@ class TiltCompensatedCompass:
         return x, y, z
 
     def get_heading(self) -> float:
-        mx, my, mz = self._read_mag_axis()
+        raw_mx, raw_my, raw_mz = self._read_mag_axis()
         ax, ay, az = self.accel.read_accel()
+
+        cal_mx = (raw_mx - self.x_offset) * self.x_scale
+        cal_my = (raw_my - self.y_offset) * self.y_scale
+        cal_mz = raw_mz 
+
         roll = math.atan2(ay, az)
         pitch = math.atan2(-ax, math.sqrt(ay * ay + az * az))
-        x_comp = mx * math.cos(pitch) + mz * math.sin(pitch)
-        y_comp = mx * math.sin(roll) * math.sin(pitch) + my * math.cos(roll) - mz * math.sin(roll) * math.cos(pitch)
+
+        x_comp = cal_mx * math.cos(pitch) + cal_mz * math.sin(pitch)
+        y_comp = cal_mx * math.sin(roll) * math.sin(pitch) + \
+                 cal_my * math.cos(roll) - \
+                 cal_mz * math.sin(roll) * math.cos(pitch)
         heading = math.atan2(y_comp, x_comp)
         heading += self.declination_rad
+        
         if heading < 0:
             heading += 2 * math.pi
         if heading > 2 * math.pi:
             heading -= 2 * math.pi
+            
         return math.degrees(heading)
 
 class Compass:
@@ -199,7 +222,12 @@ class Compass:
 
 if __name__ == "__main__":
     gps = Gps("/dev/ttyAMA3", 9600)
-    compass = Compass()
+    compass = TiltCompensatedCompass(
+        x_offset=-253.25,        
+        y_offset=-101.25,         
+        x_scale=1.0,          
+        y_scale=1.0
+    )
     while True:
         curr_location = gps.get_location()
         longitude = curr_location.longitude
