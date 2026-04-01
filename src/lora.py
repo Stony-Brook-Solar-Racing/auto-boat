@@ -157,6 +157,10 @@ class Lora:
     def get_message(self):
         return self.messages.get()
     
+    def send_mavlink(self, addr, hex_data):
+        # Wraps the MAVLink hex string with the "mav~" prefix
+        return self.send_msg(addr, "mav", hex_data)
+    
 class LoraLogging(logging.Handler):
     def __init__(self, lora_instance, target_addr):
         super().__init__()
