@@ -95,7 +95,7 @@ def mission_planner_to_lora():
             msg = f"mav~{hex_payload}"
             send_to_lora(msg)
         except Exception:
-            time.sleep(1)
+            time.sleep(0.2)
 
 def command_line_interface():
     """

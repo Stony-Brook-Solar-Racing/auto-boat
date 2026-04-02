@@ -26,26 +26,31 @@ class MavlinkHandler:
         self.thread.start()
 
     def send_telemetry(self, lat, lon, heading):
-        # 1. Generate MAVLink messages in binary
+        time_boot_ms = int(time.monotonic() * 1000) & 0xFFFFFFFF
+        
+        # --- 1. SEND HEARTBEAT ALONE ---
         self.mav.heartbeat_send(
             mavlink.MAV_TYPE_SURFACE_BOAT, 
             mavlink.MAV_AUTOPILOT_GENERIC, 
             0, 0, 0
         )
+        heartbeat_hex = self.mav_buf.read_hex() # This also clears the buffer
+        if len(heartbeat_hex) > 0:
+            self.lora.send_mavlink(self.target_address, heartbeat_hex)
+            
+        time.sleep(0.05) # Give the LoRa module a tiny window to finish transmitting
+        
+        # --- 2. SEND POSITION ALONE ---
         self.mav.global_position_int_send(
-            int(time.time() * 1000), 
+            time_boot_ms, 
             int(lat * 1e7), 
             int(lon * 1e7), 
             0, 0, 0, 0, 0, 
             int(heading * 100)
         )
-        
-        # 2. Extract binary from buffer as hex string
-        hex_data = self.mav_buf.read_hex()
-        
-        # 3. Send over LoRa (using your newly added send_mavlink function)
-        if len(hex_data) > 0:
-            self.lora.send_mavlink(self.target_address, hex_data)
+        pos_hex = self.mav_buf.read_hex()
+        if len(pos_hex) > 0:
+            self.lora.send_mavlink(self.target_address, pos_hex)
 
     def _process_incoming(self):
         while self.running:
