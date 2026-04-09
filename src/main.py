@@ -2,6 +2,7 @@ import sys
 import logging
 from glob import glob
 from time import sleep
+import threading
 
 from serial import Serial, SerialException
 
@@ -75,6 +76,15 @@ def _setup_autonomy(waypoints) -> Auto:
     auto = Auto(gps, compass, waypoints)
     return auto
 
+def _telemetry_loop(auto: Auto, mav_bridge: MavlinkHandler) -> None:
+    while True:
+        curr_loc = auto.gps.get_location()
+        curr_heading = auto.compass.get_heading()
+        if curr_loc and curr_heading is not None:
+            mav_bridge.send_telemetry(curr_loc.latitude, curr_loc.longitude, curr_heading)
+        sleep(1)
+
+
 if __name__ == "__main__":
     rc_decoder = Decode("/dev/ttyAMA0", 420000)
     count_none = 0
@@ -98,16 +108,15 @@ if __name__ == "__main__":
 
     lora_module = Lora(ADDRESS=0, NETWORK=1, PORT="/dev/ttyAMA4", BAUD=115200)
     mav_bridge = MavlinkHandler(lora_module, target_address=1) 
+    mavlink_thread = threading.Thread(target=_telemetry_loop, daemon=True)
+    logging.info("Mavlink set up")
+    print("Mavlink set up")
 
     last_value = (-1.0, 0.0, -1.0)
     last_auto_throttle = -1.0
     count_none = 0
-    while True:
-        curr_loc = auto.gps.get_location()
-        curr_heading = auto.compass.get_heading()
-        if curr_loc and curr_heading is not None:
-            mav_bridge.send_telemetry(curr_loc.latitude, curr_loc.longitude, curr_heading)
 
+    while True:
         if not lora_module.waypoints.empty():
             # Your get_waypoints() method already returns a Point(lat, lon) object
             new_wp = lora_module.get_waypoints() 
