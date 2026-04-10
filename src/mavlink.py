@@ -81,6 +81,15 @@ class MavlinkHandler:
             0, 0, 0, 0, 0, 
             int(heading * 100)
         )
+
+        self.mav.vfr_hud_send(
+                0.0, 
+                0.0, 
+                int(heading), 
+                0, 
+                0.0, 
+                0.0
+            )
         pos_hex = self.mav_buf.read_hex()
         if len(pos_hex) > 0:
             self.lora.send_mavlink(self.target_address, pos_hex)
