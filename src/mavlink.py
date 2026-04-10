@@ -18,7 +18,7 @@ class MavlinkHandler:
         self.target_address = target_address
         self.mav_buf = MavBuffer()
         # Initialize pymavlink to write binary to our buffer
-        self.mav = mavlink.MAVLink(self.mav_buf)
+        self.mav = mavlink.MAVLink(self.mav_buf, srcSystem=1, srcComponent=1)
         
         # Start a background thread to process incoming waypoints
         self.running = True

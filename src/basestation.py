@@ -140,7 +140,7 @@ def spoof_heartbeat():
 
 threading.Thread(target=lora_to_mission_planner, daemon=True).start()
 threading.Thread(target=mission_planner_to_lora, daemon=True).start()
-threading.Thread(target=spoof_heartbeat, daemon=True).start()
+# threading.Thread(target=spoof_heartbeat, daemon=True).start()
 
 # Run the CLI in the main thread
 command_line_interface()
