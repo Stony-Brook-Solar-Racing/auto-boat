@@ -1,6 +1,7 @@
 from pymavlink.dialects.v20 import common as mavlink
 import time
 import threading
+import math
 
 class MavBuffer:
     def __init__(self):
@@ -35,45 +36,26 @@ class MavlinkHandler:
             hb_msg = self.mav.heartbeat_encode(
                 mavlink.MAV_TYPE_SURFACE_BOAT, 
                 mavlink.MAV_AUTOPILOT_GENERIC, 
-                0,  # Base mode
-                0,  # Custom mode
-                0   # System status
+                0, 0, 0
             )
             
-            # 2. Pack the message into raw bytes
             hb_bytes = hb_msg.pack(self.mav)
-            
-            # 3. Convert the raw bytes to a hex string
             hb_hex = hb_bytes.hex()
             
-            # 4. Format with your Base Station's required prefix
             payload = f"mav~{hb_hex}"
-            
-            # 5. Send via your LoRa module
             self.lora.send_mavlink(self.target_address, payload)
-            
-            # Optional: Debug print to verify transmission
-            # print(f"[TX] Heartbeat Sent: {payload[:20]}...")
-            
         except Exception as e:
             print(f"[Error] Failed to send heartbeat: {e}")
 
     def send_telemetry(self, lat, lon, heading):
         time_boot_ms = int(time.monotonic() * 1000) & 0xFFFFFFFF
         
-        # --- 1. SEND HEARTBEAT ALONE ---
         self.mav.heartbeat_send(
             mavlink.MAV_TYPE_SURFACE_BOAT, 
             mavlink.MAV_AUTOPILOT_GENERIC, 
             0, 0, 0
         )
-        heartbeat_hex = self.mav_buf.read_hex() # This also clears the buffer
-        if len(heartbeat_hex) > 0:
-            self.lora.send_mavlink(self.target_address, heartbeat_hex)
-            
-        time.sleep(0.05) # Give the LoRa module a tiny window to finish transmitting
-        
-        # --- 2. SEND POSITION ALONE ---
+
         self.mav.global_position_int_send(
             time_boot_ms, 
             int(lat * 1e7), 
@@ -90,9 +72,20 @@ class MavlinkHandler:
                 0.0, 
                 0.0
             )
-        pos_hex = self.mav_buf.read_hex()
-        if len(pos_hex) > 0:
-            self.lora.send_mavlink(self.target_address, pos_hex)
+
+        self.mav.attitude_send(
+            time_boot_ms, 
+            0,
+            0,
+            math.radians(heading), # yaw (must be radians)
+            0,
+            0,
+            0
+        )
+
+        combined_hex = self.mav_buf.read_hex()
+        if len(combined_hex) > 0:
+            self.lora.send_mavlink(self.target_address, combined_hex)
 
     def _process_incoming(self):
         while self.running:
