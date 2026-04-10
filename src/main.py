@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     lora_module = Lora(ADDRESS=0, NETWORK=1, PORT="/dev/ttyAMA4", BAUD=115200)
     mav_bridge = MavlinkHandler(lora_module, target_address=1) 
-    mavlink_thread = threading.Thread(target=_telemetry_loop, daemon=True).start()
+    mavlink_thread = threading.Thread(target=_telemetry_loop(auto, mav_bridge), daemon=True).start()
     logging.info("Mavlink set up")
     print("Mavlink set up")
 
