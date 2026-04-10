@@ -4,6 +4,8 @@ import threading
 import time
 import os
 
+from pymavlink.dialects.v20 import common as mavlink
+
 # --- CONFIGURATION ---
 LORA_PORT = 'COM9' # Match your ESP32's COM port
 LORA_BAUD = 115200
@@ -124,8 +126,21 @@ def command_line_interface():
             os._exit(0)
 
 # Start all threads
+def spoof_heartbeat():
+    """ Runs on the Base Station to keep Mission Planner alive permanently """
+    spoof_mav = mavlink.MAVLink(None, srcSystem=1, srcComponent=1)
+    while True:
+        hb = spoof_mav.heartbeat_encode(
+            mavlink.MAV_TYPE_SURFACE_BOAT, 
+            mavlink.MAV_AUTOPILOT_GENERIC, 
+            0, 0, 0
+        )
+        udp.sendto(hb.pack(spoof_mav), (MP_IP, MP_PORT))
+        time.sleep(1)
+
 threading.Thread(target=lora_to_mission_planner, daemon=True).start()
 threading.Thread(target=mission_planner_to_lora, daemon=True).start()
+threading.Thread(target=spoof_heartbeat, daemon=True).start()
 
 # Run the CLI in the main thread
 command_line_interface()
