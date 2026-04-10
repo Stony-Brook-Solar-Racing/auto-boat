@@ -25,6 +25,39 @@ class MavlinkHandler:
         self.thread = threading.Thread(target=self._process_incoming, daemon=True)
         self.thread.start()
 
+    def send_heartbeat(self):
+        """
+        Generates and sends a dedicated MAVLink heartbeat packet via LoRa.
+        """
+        try:
+            # 1. Create and encode the Heartbeat message
+            # We use MAV_TYPE_SURFACE_BOAT since you are building a boat
+            hb_msg = self.mav.heartbeat_encode(
+                mavlink.MAV_TYPE_SURFACE_BOAT, 
+                mavlink.MAV_AUTOPILOT_GENERIC, 
+                0,  # Base mode
+                0,  # Custom mode
+                0   # System status
+            )
+            
+            # 2. Pack the message into raw bytes
+            hb_bytes = hb_msg.pack(self.mav)
+            
+            # 3. Convert the raw bytes to a hex string
+            hb_hex = hb_bytes.hex()
+            
+            # 4. Format with your Base Station's required prefix
+            payload = f"mav~{hb_hex}"
+            
+            # 5. Send via your LoRa module
+            self.lora.send_mavlink(self.target_address, payload)
+            
+            # Optional: Debug print to verify transmission
+            # print(f"[TX] Heartbeat Sent: {payload[:20]}...")
+            
+        except Exception as e:
+            print(f"[Error] Failed to send heartbeat: {e}")
+
     def send_telemetry(self, lat, lon, heading):
         time_boot_ms = int(time.monotonic() * 1000) & 0xFFFFFFFF
         
