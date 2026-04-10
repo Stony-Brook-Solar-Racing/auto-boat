@@ -82,7 +82,7 @@ def _telemetry_loop(auto: Auto, mav_bridge: MavlinkHandler) -> None:
         curr_heading = auto.compass.get_heading()
         if curr_loc and curr_heading is not None:
             mav_bridge.send_telemetry(curr_loc.latitude, curr_loc.longitude, curr_heading)
-            print(f"[TX] Sending Telemetry -> Lat: {curr_loc.latitude:.5f}, Lon: {curr_loc.longitude:.5f}, Hdg: {curr_heading:.1f}")
+            # print(f"[TX] Sending Telemetry -> Lat: {curr_loc.latitude:.5f}, Lon: {curr_loc.longitude:.5f}, Hdg: {curr_heading:.1f}")
 
 if __name__ == "__main__":
     rc_decoder = Decode("/dev/ttyAMA0", 420000)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     lora_module = Lora(ADDRESS=0, NETWORK=1, PORT="/dev/ttyAMA4", BAUD=115200)
     mav_bridge = MavlinkHandler(lora_module, target_address=1) 
-    mavlink_thread = threading.Thread(target=_telemetry_loop(auto, mav_bridge), daemon=True).start()
+    mavlink_thread = threading.Thread(target=_telemetry_loop, args=(auto, mav_bridge), daemon=True).start()
     logging.info("Mavlink set up")
     print("Mavlink set up")
 
