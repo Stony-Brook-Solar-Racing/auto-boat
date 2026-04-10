@@ -82,6 +82,7 @@ def _telemetry_loop(auto: Auto, mav_bridge: MavlinkHandler) -> None:
         curr_heading = auto.compass.get_heading()
         if curr_loc and curr_heading is not None:
             mav_bridge.send_telemetry(curr_loc.latitude, curr_loc.longitude, curr_heading)
+            print(f"[TX] Sending Telemetry -> Lat: {curr_loc.latitude:.5f}, Lon: {curr_loc.longitude:.5f}, Hdg: {curr_heading:.1f}")
 
 if __name__ == "__main__":
     rc_decoder = Decode("/dev/ttyAMA0", 420000)
