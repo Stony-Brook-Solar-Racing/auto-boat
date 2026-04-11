@@ -64,15 +64,15 @@ class MavlinkHandler:
             int(heading * 100)
         )
 
-        self.mav.vfr_hud_send(
-                0.0, 
-                0.0, 
-                int(heading), 
-                0, 
-                0.0, 
-                0.0
-            )
-
+        # self.mav.vfr_hud_send(
+        #         0.0, 
+        #         0.0, 
+        #         int(heading), 
+        #         0, 
+        #         0.0, 
+        #         0.0
+        #     )
+        #
         self.mav.attitude_send(
             time_boot_ms, 
             0,
