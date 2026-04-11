@@ -203,7 +203,10 @@ if __name__ == "__main__":
         sat_count = gps.get_satelite_count()
         visible_sat_count = gps.last_num_visible_sats
         print(f"heading: {heading}")
-        print(f"longitude: {longitude} | latitude: {latitude}")
+        if gps.get_location != None:
+            print(f"longitude: {longitude} | latitude: {latitude}")
+        else:
+            print("NO GPS")
         print(f"satelite count: {sat_count}")
         print(f"visible satelite count: {visible_sat_count}")
         time.sleep(0.1)
