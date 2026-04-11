@@ -121,13 +121,8 @@ if __name__ == "__main__":
 
     while True:
         if not lora_module.waypoints.empty():
-            # Your get_waypoints() method already returns a Point(lat, lon) object
             new_wp = lora_module.get_waypoints() 
-            
-            # Append it to your autonomy's waypoint list
-            # Note: If your Auto class uses a specific method to add waypoints (like auto.add_waypoint(new_wp)), use that here instead
             auto.waypoints.append(new_wp) 
-            
             logging.info(f"*** MISSION PLANNER WAYPOINT ADDED: {new_wp.latitude}, {new_wp.longitude} ***")
             print(f"*** MISSION PLANNER WAYPOINT ADDED: {new_wp.latitude}, {new_wp.longitude} ***")
 
@@ -201,10 +196,11 @@ if __name__ == "__main__":
             rotation, throttle = auto.get_values(last_auto_throttle)
             last_auto_throttle = throttle
             channels = f"{rotation} {throttle}\n"
-            print(f"target waypoint: {auto.get_curr_waypoint().latitude} | {auto.get_curr_waypoint().longitude}")
-            print(f"curr location: {auto.gps.get_location().latitude} | {auto.gps.get_location().longitude}")
-            print(f"curr heading: {auto.compass.get_heading()}")
-            print(f"Error Angle: {auto.angle_to_waypoint(auto.get_curr_waypoint()):.2f} | PID Output: {float(rotation):.2f}")
-            print(f"angle to wayp: {auto.angle_to_waypoint(auto.get_curr_waypoint())}")
+            if auto.get_curr_waypoint() is not None:
+                print(f"target waypoint: {auto.get_curr_waypoint().latitude} | {auto.get_curr_waypoint().longitude}")
+                print(f"curr location: {auto.gps.get_location().latitude} | {auto.gps.get_location().longitude}")
+                print(f"curr heading: {auto.compass.get_heading()}")
+                print(f"Error Angle: {auto.angle_to_waypoint(auto.get_curr_waypoint()):.2f} | PID Output: {float(rotation):.2f}")
+                print(f"angle to wayp: {auto.angle_to_waypoint(auto.get_curr_waypoint())}")
             print(f"channels: {channels}")
             _send(arduino, channels)

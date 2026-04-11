@@ -104,7 +104,9 @@ class MavlinkHandler:
             time.sleep(0.1)
 
     def _handle_msg(self, msg):
-        # Mission Planner sends MISSION_ITEM_INT for waypoints
+        
+        print(f"[MAVLINK] Decoded packet type: {msg_type}") 
+        
         if msg.get_type() == 'MISSION_ITEM_INT':
             lat = msg.x / 1e7
             lon = msg.y / 1e7
