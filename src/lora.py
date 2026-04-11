@@ -87,7 +87,7 @@ class Lora:
         self.thread.start()
 
     def _init_module(self):
-        commands = ["AT", "AT+BAND=915000000", "AT+CRFOP=22", f"AT+ADDRESS={self.address}", f"AT+NETWORKID={self.network}"]
+        commands = ["AT", "AT+BAND=915000000", "AT+CRFOP=22", f"AT+ADDRESS={self.address}", f"AT+NETWORKID={self.network}", "AT+PARAMETER=7,9,1,12"]
         for cmd in commands:
             if not self.send_command(cmd):
                 raise Exception(f"Failed to initialize: {cmd}")

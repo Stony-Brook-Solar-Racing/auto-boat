@@ -25,6 +25,8 @@ def main():
 
     try:
         while True:
+            mav_bridge.send_heartbeat()
+            time.sleep(1)
             # --- 1. SEND FAKE TELEMETRY ---
             print(f"[TX] Sending Telemetry -> Lat: {lat:.5f}, Lon: {lon:.5f}, Hdg: {heading:.1f}")
             mav_bridge.send_telemetry(lat, lon, heading)

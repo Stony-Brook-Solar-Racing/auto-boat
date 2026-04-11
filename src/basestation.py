@@ -31,6 +31,7 @@ def init_basestation():
         "AT+NETWORKID=1",
         "AT+ADDRESS=1",
         "AT+CRFOP=22"
+        "AT+PARAMETER=7,9,1,12"
     ]
     for cmd in commands:
         lora.write(f"{cmd}\r\n".encode('utf-8'))
