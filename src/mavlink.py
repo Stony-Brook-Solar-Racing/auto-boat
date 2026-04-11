@@ -50,11 +50,11 @@ class MavlinkHandler:
     def send_telemetry(self, lat, lon, heading):
         time_boot_ms = int(time.monotonic() * 1000) & 0xFFFFFFFF
         
-        self.mav.heartbeat_send(
-            mavlink.MAV_TYPE_SURFACE_BOAT, 
-            mavlink.MAV_AUTOPILOT_GENERIC, 
-            0, 0, 0
-        )
+        # self.mav.heartbeat_send(
+        #     mavlink.MAV_TYPE_SURFACE_BOAT, 
+        #     mavlink.MAV_AUTOPILOT_GENERIC, 
+        #     0, 0, 0
+        # )
 
         self.mav.global_position_int_send(
             time_boot_ms, 
