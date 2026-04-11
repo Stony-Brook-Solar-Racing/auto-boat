@@ -197,13 +197,13 @@ if __name__ == "__main__":
     )
     while True:
         curr_location = gps.get_location()
-        longitude = curr_location.longitude
-        latitude = curr_location.latitude
         heading = compass.get_heading()
         sat_count = gps.get_satelite_count()
         visible_sat_count = gps.last_num_visible_sats
         print(f"heading: {heading}")
         if gps.get_location != None:
+            longitude = curr_location.longitude
+            latitude = curr_location.latitude
             print(f"longitude: {longitude} | latitude: {latitude}")
         else:
             print("NO GPS")
