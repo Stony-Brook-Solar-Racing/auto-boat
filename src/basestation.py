@@ -30,7 +30,7 @@ def init_basestation():
         "AT+BAND=915000000",
         "AT+NETWORKID=1",
         "AT+ADDRESS=1",
-        "AT+CRFOP=22"
+        "AT+CRFOP=22",
         "AT+PARAMETER=7,9,1,12"
     ]
     for cmd in commands:
