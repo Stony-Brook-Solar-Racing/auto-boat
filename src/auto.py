@@ -55,6 +55,9 @@ class Auto:
             # print(f"curr_location: longitude={curr_location.latitude} | latitude={curr_location.longitude}")
             # convert to meters
             dist = distance(waypoint, curr_location)
+            if dist/1000 < 10:
+                self.waypoints.pop()
+
             print(f"dist: {dist}")
             desired_throttle = 1.0 if dist > 30 else ((dist / 30.0) * 2 - 1)
 
