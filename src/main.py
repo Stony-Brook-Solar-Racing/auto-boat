@@ -194,6 +194,7 @@ if __name__ == "__main__":
             if last_state != 1.0:
                 auto.start()
                 last_auto_throttle = -1.0
+                logging.info("Autonomy started")
 
             channels = DEFAULT_CHANNELS
             if auto.gps.get_location() != None:
@@ -209,6 +210,7 @@ if __name__ == "__main__":
                     print(f"Error Angle: {auto.angle_to_waypoint(auto.get_curr_waypoint()):.2f} | PID Output: {float(rotation):.2f}")
                     print(f"angle to wayp: {auto.angle_to_waypoint(auto.get_curr_waypoint())}")
             else: 
+                logging.warning("GPS DATA CORRUPTED/NONE")
                 print("GPS DATA CORRUPTED/NONE")
 
             print(f"channels: {channels}")
