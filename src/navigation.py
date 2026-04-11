@@ -62,6 +62,9 @@ class Gps:
             except Exception:
                 time.sleep(0.1)
 
+    def get_satelite_count(self):
+        return self.get_satelite_count
+
     def get_location(self):
         with self._lock:
             return self.last_location
