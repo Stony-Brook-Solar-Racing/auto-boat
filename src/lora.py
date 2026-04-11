@@ -152,7 +152,7 @@ class Lora:
 
     def get_waypoints(self):
         tmp = self.waypoints.get()
-        return Point(tmp[0], tmp[1])
+        return Point(float(tmp[0]), float(tmp[1]))
 
     def get_message(self):
         return self.messages.get()
