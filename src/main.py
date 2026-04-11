@@ -105,7 +105,8 @@ if __name__ == "__main__":
     logging.info("Arduino set up")
     print("Arduino set up")
 
-    auto = _setup_autonomy([Point(40.89769,-73.12574)])
+    # auto = _setup_autonomy([Point(40.89769,-73.12574)])
+    auto = _setup_autonomy([])
     logging.info("Autonomous functions set up")
     print("Autonomous functions set up")
 
@@ -193,14 +194,22 @@ if __name__ == "__main__":
             if last_state != 1.0:
                 auto.start()
                 last_auto_throttle = -1.0
-            rotation, throttle = auto.get_values(last_auto_throttle)
-            last_auto_throttle = throttle
-            channels = f"{rotation} {throttle}\n"
-            if auto.get_curr_waypoint() is not None:
-                print(f"target waypoint: {auto.get_curr_waypoint().latitude} | {auto.get_curr_waypoint().longitude}")
-                print(f"curr location: {auto.gps.get_location().latitude} | {auto.gps.get_location().longitude}")
-                print(f"curr heading: {auto.compass.get_heading()}")
-                print(f"Error Angle: {auto.angle_to_waypoint(auto.get_curr_waypoint()):.2f} | PID Output: {float(rotation):.2f}")
-                print(f"angle to wayp: {auto.angle_to_waypoint(auto.get_curr_waypoint())}")
+
+            channels = DEFAULT_CHANNELS
+            if auto.gps.get_location() != None:
+                rotation, throttle = auto.get_values(last_auto_throttle)
+                last_auto_throttle = throttle
+                channels = f"{rotation} {throttle}\n"
+
+                # DEBUG PRINT
+                if auto.get_curr_waypoint() is not None:
+                    print(f"target waypoint: {auto.get_curr_waypoint().latitude} | {auto.get_curr_waypoint().longitude}")
+                    print(f"curr location: {auto.gps.get_location().latitude} | {auto.gps.get_location().longitude}")
+                    print(f"curr heading: {auto.compass.get_heading()}")
+                    print(f"Error Angle: {auto.angle_to_waypoint(auto.get_curr_waypoint()):.2f} | PID Output: {float(rotation):.2f}")
+                    print(f"angle to wayp: {auto.angle_to_waypoint(auto.get_curr_waypoint())}")
+            else: 
+                print("GPS DATA CORRUPTED/NONE")
+
             print(f"channels: {channels}")
             _send(arduino, channels)

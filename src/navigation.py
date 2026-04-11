@@ -13,7 +13,7 @@ class Point:
 class Gps:
     def __init__(self, PORT="/dev/ttyAMA3", BAUD=9600):
         self.gps = serial.Serial(PORT, BAUD, timeout=1)
-        self.last_location = Point(-1, -1)
+        self.last_location = None
         self.last_num_sats = None
         self.last_num_visible_sats = None
         self._lock = threading.Lock()
@@ -46,8 +46,7 @@ class Gps:
                             self.last_location = Point(dec_deg_lat, dec_deg_lon)
                     else:
                         with self._lock:
-                            self.last_location = Point(-2, -2)
-                            
+                            self.last_location = None
                 elif line.startswith("$GPGGA") or line.startswith("$GNGGA"):
                     msg = pynmea2.parse(line)
                     with self._lock:
@@ -62,38 +61,6 @@ class Gps:
                 pass
             except Exception:
                 time.sleep(0.1)
-
-    def update_satelite_count(self):
-        line = self.gps.readline().decode("ascii", errors="ignore")
-        if line.startswith("$GPGGA") or line.startswith("$GNGGA"):
-            msg = pynmea2.parse(line)
-            with self._lock:
-                self.last_num_sats = msg.num_sats
-
-        with self._lock:
-            self.last_num_sats = None
-
-    def get_satelite_count(self):
-        with self._lock:
-            return self.last_num_sats
-
-    def update_location(self):
-        while True:
-            try:
-                line = self.gps.readline().decode("ascii", errors="ignore")
-                if line.startswith("$GPRMC") or line.startswith("$GNRMC"):
-                    msg = pynmea2.parse(line)
-                    if msg.status == 'A':
-                        dec_deg_lat = self._convert_dec_deg(msg.lat, msg.lat_dir)
-                        dec_deg_lon = self._convert_dec_deg(msg.lon, msg.lon_dir)
-                        with self._lock:
-                            self.last_location = Point(dec_deg_lat, dec_deg_lon)
-                        continue
-                    else:
-                        with self._lock:
-                            self.last_location = Point(-2, -2)
-            except pynmea2.ParseError:
-                pass
 
     def get_location(self):
         with self._lock:
