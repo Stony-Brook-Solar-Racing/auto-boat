@@ -20,7 +20,7 @@ NONE_TIMEOUT = 20
 
 logging.basicConfig(
     format='%(relativeCreated)dms:%(levelname)s - %(message)s',
-    filename="pi.log", filemode="w+", level=logging.NOTSET
+    filename="/var/log/pi.log", filemode="w+", level=logging.NOTSET
 )
 
 
